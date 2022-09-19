@@ -29,6 +29,8 @@ services:
         context: ./client-php
         args:
           - FPM_PHP_VERSION:${PHP_VERSION}
+          - PUID=${PHP_FPM_PUID}
+          - PGID=${PHP_FPM_PGID}
       volumes:
           - ./client-php/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
           - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
@@ -52,6 +54,8 @@ services:
         context: ./api-php
         args:
           - FPM_PHP_VERSION:${PHP_VERSION}
+          - PUID=${PHP_FPM_PUID}
+          - PGID=${PHP_FPM_PGID}
       volumes:
           - ./api-php/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
           - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
