@@ -1,3 +1,4 @@
+# author: quandn
 FROM phpmyadmin/phpmyadmin
 
 VOLUME /sessions

@@ -1,3 +1,4 @@
+# author: quandn
 FROM redis:latest
 
 RUN rm -r ${DATA_PATH_HOST}/redis
