@@ -96,7 +96,6 @@ services:
     mysql:
       image: ${DOCKER_NAME}mysql
       container_name: ${DOCKER_NAME}mysql
-      restart: unless-stopped
       build:
         context: ./mysql
         args:
