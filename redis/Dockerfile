@@ -1,7 +1,7 @@
 # author: quandn
 FROM redis:latest
 
-RUN rm -r ${DATA_PATH_HOST}/redis
+# RUN rm -r ${DATA_PATH_HOST}/redis
 RUN mkdir ${DATA_PATH_HOST}/redis
 
 VOLUME /data
