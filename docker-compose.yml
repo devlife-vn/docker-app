@@ -19,7 +19,35 @@ volumes:
     driver: ${VOLUMES_DRIVER}
   api-php:
     driver: ${VOLUMES_DRIVER}
+  job-server:
+    driver: ${VOLUMES_DRIVER}
 services:
+#### job-server
+    job-server:
+      image: ${DOCKER_NAME}job-server
+      container_name: ${DOCKER_NAME}job-server
+      restart: unless-stopped
+      build:
+        context: ./job-server
+        args:
+          - FPM_PHP_VERSION:${PHP_VERSION}
+          - PUID=${PHP_FPM_PUID}
+          - PGID=${PHP_FPM_PGID}
+      volumes:
+          - ./job-server/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+          - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      ports:
+        - "8084:8084"
+      external_links:
+        - "nginx:api.tanthanhdat.local"
+        - "nginx:auth.tanthanhdat.local"
+        - "nginx:marketing.tanthanhdat.local"
+        - "nginx:job.tanthanhdat.local"
+      tty: true
+      expose:
+        - "8084"
+      networks:
+        - backend
 #### php-fpm
     client-php:
       image: ${DOCKER_NAME}client-php
@@ -40,6 +68,7 @@ services:
         - "nginx:api.tanthanhdat.local"
         - "nginx:auth.tanthanhdat.local"
         - "nginx:marketing.tanthanhdat.local"
+        - "nginx:job.tanthanhdat.local"
       tty: true
       expose:
         - "8082"
@@ -65,6 +94,7 @@ services:
         - "nginx:api.tanthanhdat.local"
         - "nginx:auth.tanthanhdat.local"
         - "nginx:marketing.tanthanhdat.local"
+        - "nginx:job.tanthanhdat.local"
       tty: true
       expose:
         - "8083"
