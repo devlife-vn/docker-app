@@ -16,5 +16,46 @@ sudo kill $(sudo lsof -t -i:6379)
 
 docker-compose down --rmi all -v --remove-orphans
 
-docker-compose up --build --force-recreate --no-deps -d mysql phpmyadmin redis nginx client-php api-php job-server
+docker-compose up --build --force-recreate --no-deps -d mysql
+
+clear
+
+docker ps
+
+docker-compose up --build --force-recreate --no-deps -d phpmyadmin
+
+clear
+
+docker ps
+
+docker-compose up --build --force-recreate --no-deps -d redis
+
+clear
+
+docker ps
+
+docker-compose up --build --force-recreate --no-deps -d nginx
+
+clear
+
+docker ps
+
+docker-compose up --build --force-recreate --no-deps -d client-php
+
+clear
+
+docker ps
+
+docker-compose up --build --force-recreate --no-deps -d api-php
+
+clear
+
+docker ps
+
+docker-compose up --build --force-recreate --no-deps -d job-server
+
+clear
+
+docker ps
+
 # docker-compose up --build --force-recreate --no-deps -d mysql phpmyadmin redis nginx client-php
