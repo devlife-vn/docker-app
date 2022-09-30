@@ -1,9 +1,10 @@
 APP_CODE_PATH_CONTAINER=/var/www
-APP_CODE_PATH_HOST=../ttd_web/
+APP_CODE_PATH_HOST=../ttd/web/
 APP_DOMAIN_NAME=tanthanhdat.local
 WORKING_DIR=./src
 SOURCE_CLIENT_FOLDER=authtanthanhdat/
 SOURCE_API_FOLDER=api/
+SOURCE_JOB_FOLDER=job/
 APP_CODE_CONTAINER_FLAG=:cached
 DOCKER_NAME=tms-
 DATA_PATH_HOST=~/.tms_docker
