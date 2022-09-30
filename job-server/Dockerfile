@@ -45,6 +45,8 @@ RUN apt-get update -y && apt-get install --no-install-recommends --no-install-su
     ssh \
     unzip \
     zip \
+    nano \
+    vim \
     iputils-ping \
     xz-utils \
     libvips-tools && \
