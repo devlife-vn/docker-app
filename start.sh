@@ -12,9 +12,9 @@ sudo kill $(sudo lsof -t -i:8084)
 sudo kill $(sudo lsof -t -i:6379)
 
 
-# docker system prune -a --volumes
+docker system prune -a --volumes
 
-docker-compose down --rmi all -v --remove-orphans
+# docker-compose down --rmi all -v --remove-orphans
 
 docker-compose up --build --force-recreate --no-deps -d mysql
 
