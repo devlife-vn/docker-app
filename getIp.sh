@@ -2,7 +2,7 @@
 docker ps
 
 # get ip
-printf "\n ENTER CONTAINER ID:"
+printf "ENTER CONTAINER ID:"
 
 read ipContainerID
 
