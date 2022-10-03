@@ -11,6 +11,6 @@ read dockerId
 
 echo $dockerId
 
-docker exec -it --user=www-data $dockerId bash
+docker exec -it --user=root $dockerId bash
 
 
