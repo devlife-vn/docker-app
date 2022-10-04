@@ -16,46 +16,31 @@ docker system prune -a --volumes
 
 # docker-compose down --rmi all -v --remove-orphans
 
+# build mysql
 docker-compose up --build --force-recreate --no-deps -d mysql
-
-clear
-
 docker ps
 
+# build phpmyadmin
 docker-compose up --build --force-recreate --no-deps -d phpmyadmin
-
-clear
-
 docker ps
 
+# build redis
 docker-compose up --build --force-recreate --no-deps -d redis
-
-clear
-
 docker ps
 
+# build nginx
 docker-compose up --build --force-recreate --no-deps -d nginx
-
-clear
-
 docker ps
 
+# build client-php
 docker-compose up --build --force-recreate --no-deps -d client-php
-
-clear
-
 docker ps
 
+# build api-php
 docker-compose up --build --force-recreate --no-deps -d api-php
-
-clear
-
 docker ps
 
+# build job-server
 docker-compose up --build --force-recreate --no-deps -d job-server
-
 clear
-
 docker ps
-
-# docker-compose up --build --force-recreate --no-deps -d mysql phpmyadmin redis nginx client-php
