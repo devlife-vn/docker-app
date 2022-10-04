@@ -1,3 +1,3 @@
-./find_IP_docker.sh quandn-phpmyadmin
+./find_ip_docker.sh quandn-phpmyadmin
 
-./find_IP_docker.sh quandn-mysql
+./find_ip_docker.sh quandn-mysql

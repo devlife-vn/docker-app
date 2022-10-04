@@ -13,13 +13,13 @@ Error -> Parameter is missed
 Help -> sh find_IP_Address --help
 "
 
-elif [ "$1" = "All" ]
+elif [ "$1" = "-a" ]
 then
 	for container in $(docker ps --format '{{.Names}}')
 	do
 		for ipadd in $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}} {{end}}' $container)
 		do
-		echo "IP address of $container container :  $ipadd"
+		echo "IP ADDRESS OF CONTAINER [$container]:  $ipadd"
 		done
 	done
 
@@ -30,9 +30,9 @@ else
 		if [ "$con" = "$1" ]
 		then
 			for ipadd in $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}} {{end}}' $con)
-        	        do
-                	echo "IP address of $con container :  $ipadd"
-               	        done
+			do
+				echo "IP ADDRESS OF CONTAINER [$container]:  $ipadd"
+			done
 		exit
 		fi
 	done
