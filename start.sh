@@ -40,7 +40,7 @@ docker ps
 # docker ps
 
 # build api-php
-docker-compose up --build --force-recreate --no-deps -d workspaces
+docker-compose up --build --force-recreate --no-deps -d php-fpm
 docker ps
 clear
 # # build job-server
