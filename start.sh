@@ -11,6 +11,9 @@ sudo kill $(sudo lsof -t -i:8083)
 sudo kill $(sudo lsof -t -i:8084)
 sudo kill $(sudo lsof -t -i:6379)
 
+# docker-compose up
+# docker ps
+# ./find_IP_docker.sh -a
 
 docker system prune -a --volumes
 
@@ -43,4 +46,11 @@ docker ps
 # build job-server
 docker-compose up --build --force-recreate --no-deps -d job-server
 clear
+
+echo "================================================================= [CONTAINERS] ========================================================================================================";
 docker ps
+
+./find_ip_docker.sh -a
+
+echo "================================================================= [CONTAINER ACCOUNTS] ==================================================================================================";
+echo "ACCOUNT MYSQL [root][secret]";

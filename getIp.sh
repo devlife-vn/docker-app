@@ -1,6 +1,8 @@
 # container list
 docker ps
 
+./find_ip_docker.sh -a
+
 # get ip
 printf "ENTER CONTAINER ID:"
 
