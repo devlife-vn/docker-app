@@ -1,3 +1,3 @@
-dockerId=`docker ps -aqf "name=^*api-php*"`
+dockerId=`docker ps -aqf "name=^*workspaces*"`
 echo $dockerId
 docker exec -it --user=www-data $dockerId bash

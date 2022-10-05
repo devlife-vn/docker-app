@@ -21,7 +21,35 @@ volumes:
     driver: ${VOLUMES_DRIVER}
   job-server:
     driver: ${VOLUMES_DRIVER}
+  workspaces:
+    driver: ${VOLUMES_DRIVER}
 services:
+#### php-fpm
+    workspaces:
+      image: ${DOCKER_NAME}${PHP_WORKSPACES_NAME}
+      container_name: ${DOCKER_NAME}${PHP_WORKSPACES_NAME}
+      restart: unless-stopped
+      build:
+        context: ./containers/${PHP_WORKSPACES_NAME}
+        args:
+          - FPM_PHP_VERSION:${PHP_VERSION}
+          - PUID=${PHP_FPM_PUID}
+          - PGID=${PHP_FPM_PGID}
+      volumes:
+          - ./containers/${PHP_WORKSPACES_NAME}/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+          - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      ports:
+        - "8083:8083"
+      external_links:
+        - "nginx:api.tanthanhdat.local"
+        - "nginx:auth.tanthanhdat.local"
+        - "nginx:marketing.tanthanhdat.local"
+        - "nginx:job.tanthanhdat.local"
+      tty: true
+      expose:
+        - "8083"
+      networks:
+        - backend
 #### job-server
     job-server:
       image: ${DOCKER_NAME}job-server
@@ -111,8 +139,8 @@ services:
         context: ./nginx
         args:
           - CHANGE_SOURCE=${CHANGE_SOURCE}
-          - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
-          - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+          - NGINX_PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
+          - NGINX_PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
           - http_proxy
           - https_proxy
           - no_proxy

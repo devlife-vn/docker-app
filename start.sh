@@ -35,17 +35,17 @@ docker ps
 docker-compose up --build --force-recreate --no-deps -d nginx
 docker ps
 
-# build client-php
-docker-compose up --build --force-recreate --no-deps -d client-php
-docker ps
+# # build client-php
+# docker-compose up --build --force-recreate --no-deps -d client-php
+# docker ps
 
 # build api-php
-docker-compose up --build --force-recreate --no-deps -d api-php
+docker-compose up --build --force-recreate --no-deps -d workspaces
 docker ps
-
-# build job-server
-docker-compose up --build --force-recreate --no-deps -d job-server
 clear
+# # build job-server
+# docker-compose up --build --force-recreate --no-deps -d job-server
+# clear
 
 echo "================================================================= [CONTAINERS] ========================================================================================================";
 docker ps
