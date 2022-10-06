@@ -1,3 +1,3 @@
-dockerId=`docker ps -aqf "name=^*quandn-client-php*"`
+dockerId=`docker ps -aqf "name=^*php-fpm*"`
 echo $dockerId
-docker exec -it --user=root $dockerId bash -c "./clear_cache.sh"
+docker exec -it --user=www-data $dockerId bash -c "./clear_cache.sh"
