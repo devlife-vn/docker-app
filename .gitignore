@@ -50,4 +50,6 @@ Thumbs.db
 
 .env
 
+ssh_file/
+
 ssh_server.sh
