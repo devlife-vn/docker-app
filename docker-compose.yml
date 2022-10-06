@@ -30,13 +30,13 @@ services:
       container_name: ${DOCKER_NAME}${PHP_FPM_CONTAINER_NAME}
       restart: unless-stopped
       build:
-        context: ./${CONTAINER_NAME}${PHP_FPM_CONTAINER_NAME}
+        context: ./${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}
         args:
           - FPM_PHP_VERSION:${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
-          - ./${CONTAINER_NAME}${PHP_FPM_CONTAINER_NAME}/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+          - ./${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
           - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       ports:
         - "8083:8083"
@@ -56,13 +56,13 @@ services:
       container_name: ${DOCKER_NAME}job-server
       restart: unless-stopped
       build:
-        context: ./job-server
+        context: ./${CONTAINER_FOLDER_NAME}job-server
         args:
           - FPM_PHP_VERSION:${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
-          - ./job-server/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+          - ./${CONTAINER_FOLDER_NAME}job-server/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
           - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       ports:
         - "8084:8084"
@@ -82,13 +82,13 @@ services:
       container_name: ${DOCKER_NAME}client-php
       restart: unless-stopped
       build:
-        context: ./client-php
+        context: ./${CONTAINER_FOLDER_NAME}client-php
         args:
           - FPM_PHP_VERSION:${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
-          - ./client-php/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+          - ./${CONTAINER_FOLDER_NAME}client-php/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
           - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       ports:
         - "8082:8082"
@@ -108,13 +108,13 @@ services:
       container_name: ${DOCKER_NAME}api-php
       restart: unless-stopped
       build:
-        context: ./api-php
+        context: ./${CONTAINER_FOLDER_NAME}api-php
         args:
           - FPM_PHP_VERSION:${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
-          - ./api-php/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+          - ./${CONTAINER_FOLDER_NAME}api-php/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
           - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       ports:
         - "8083:8083"
@@ -136,7 +136,7 @@ services:
       ports:
         - "80:80"
       build:
-        context: ./nginx
+        context: ./${CONTAINER_FOLDER_NAME}nginx
         args:
           - CHANGE_SOURCE=${CHANGE_SOURCE}
           - NGINX_PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
@@ -157,7 +157,7 @@ services:
       image: ${DOCKER_NAME}mysql
       container_name: ${DOCKER_NAME}mysql
       build:
-        context: ./mysql
+        context: ./${CONTAINER_FOLDER_NAME}mysql
         args:
           - MYSQL_VERSION=${MYSQL_VERSION}
       restart: unless-stopped
@@ -168,7 +168,7 @@ services:
         - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
         - TZ=${WORKSPACE_TIMEZONE}
       volumes:
-      - ./mysql:/docker-entrypoint-initdb.d
+      - ./${CONTAINER_FOLDER_NAME}mysql:/docker-entrypoint-initdb.d
       ports:
         - "3306:3306"
       networks:
@@ -178,9 +178,11 @@ services:
       image: ${DOCKER_NAME}redis
       container_name: ${DOCKER_NAME}redis
       restart: unless-stopped
-      build: ./redis
+      build: 
+        context: ./${CONTAINER_FOLDER_NAME}redis
       volumes:
         - ${DATA_PATH_HOST}/redis:/data
+        - ${REDIS_HOST_LOG_PATH}:/var/log/redis/redis-server.log
       ports:
         - "${REDIS_PORT}:6379"
       networks:
@@ -190,7 +192,8 @@ services:
       image: ${DOCKER_NAME}phpmyadmin
       container_name: ${DOCKER_NAME}phpmyadmin
       restart: unless-stopped
-      build: ./phpmyadmin
+      build:
+        context: ./${CONTAINER_FOLDER_NAME}phpmyadmin
       environment:
         - PMA_ARBITRARY=1
         - MYSQL_USER=${NETWORKS_DRIVER}

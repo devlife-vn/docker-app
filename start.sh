@@ -20,31 +20,31 @@ docker system prune -a --volumes
 # docker-compose down --rmi all -v --remove-orphans
 
 # build mysql
-docker-compose up --build --force-recreate --no-deps -d mysql
+docker-compose up --build --force-recreate --remove-orphans --no-deps -d mysql
 docker ps
 
 # build phpmyadmin
-docker-compose up --build --force-recreate --no-deps -d phpmyadmin
+docker-compose up --build --force-recreate --remove-orphans --no-deps -d phpmyadmin
 docker ps
 
 # build redis
-docker-compose up --build --force-recreate --no-deps -d redis
+docker-compose up --build --force-recreate --remove-orphans --no-deps -d redis
 docker ps
 
 # build nginx
-docker-compose up --build --force-recreate --no-deps -d nginx
+docker-compose up --build --force-recreate --remove-orphans --no-deps -d nginx
 docker ps
 
 # # build client-php
-# docker-compose up --build --force-recreate --no-deps -d client-php
+# docker-compose up --build --force-recreate --remove-orphans --no-deps -d client-php
 # docker ps
 
 # build api-php
-docker-compose up --build --force-recreate --no-deps -d php-fpm
+docker-compose up --build --force-recreate --remove-orphans --no-deps -d php-fpm
 docker ps
 clear
 # # build job-server
-# docker-compose up --build --force-recreate --no-deps -d job-server
+# docker-compose up --build --force-recreate --remove-orphans --no-deps -d job-server
 # clear
 
 echo "================================================================= [CONTAINERS] ========================================================================================================";
