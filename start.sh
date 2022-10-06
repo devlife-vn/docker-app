@@ -47,6 +47,8 @@ clear
 # docker-compose up --build --force-recreate --remove-orphans --no-deps -d job-server
 # clear
 
+./exec.sh
+
 echo "================================================================= [CONTAINERS] ========================================================================================================";
 docker ps
 
