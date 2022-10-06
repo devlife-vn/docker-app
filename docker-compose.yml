@@ -169,6 +169,7 @@ services:
         - TZ=${WORKSPACE_TIMEZONE}
       volumes:
       - ./${CONTAINER_FOLDER_NAME}mysql:/docker-entrypoint-initdb.d
+      - ./${CONTAINER_FOLDER_NAME}mysql/data:/db-data
       ports:
         - "3306:3306"
       networks:
