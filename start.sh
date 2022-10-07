@@ -1,60 +1,7 @@
 #!/usr/bin/env bash
-clear
 
-docker stop $(docker ps -aq)
+./stop.sh
 
-docker ps
+echo "================================================================= [CONTAINER START] ============================================================================================="
 
-sudo kill $(sudo lsof -t -i:8080)
-sudo kill $(sudo lsof -t -i:3306)
-sudo kill $(sudo lsof -t -i:9000)
-sudo kill $(sudo lsof -t -i:8082)
-sudo kill $(sudo lsof -t -i:8083)
-sudo kill $(sudo lsof -t -i:8084)
-sudo kill $(sudo lsof -t -i:6379)
-
-# docker-compose up
-# docker ps
-# ./find_IP_docker.sh -a
-
-docker system prune -a --volumes
-
-# docker-compose down --rmi all -v --remove-orphans
-
-# build mysql
-docker-compose up --build --force-recreate --remove-orphans --no-deps -d mysql
-docker ps
-
-# build phpmyadmin
-docker-compose up --build --force-recreate --remove-orphans --no-deps -d phpmyadmin
-docker ps
-
-# build redis
-docker-compose up --build --force-recreate --remove-orphans --no-deps -d redis
-docker ps
-
-# build nginx
-docker-compose up --build --force-recreate --remove-orphans --no-deps -d nginx
-docker ps
-
-# # build client-php
-# docker-compose up --build --force-recreate --remove-orphans --no-deps -d client-php
-# docker ps
-
-# build api-php
-docker-compose up --build --force-recreate --remove-orphans --no-deps -d php-fpm
-docker ps
-clear
-# # build job-server
-# docker-compose up --build --force-recreate --remove-orphans --no-deps -d job-server
-# clear
-
-./exec.sh
-
-echo "================================================================= [CONTAINERS] ========================================================================================================";
-docker ps
-
-./find_ip_docker.sh -a
-
-echo "================================================================= [CONTAINER ACCOUNTS] ==================================================================================================";
-echo "ACCOUNT MYSQL [root][secret]";
+docker-compose up php-fpm redis phpmyadmin mysql nginx
