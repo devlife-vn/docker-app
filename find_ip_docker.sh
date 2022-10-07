@@ -19,7 +19,7 @@ elif [ "$1" = "-a" ]
 	do
 		for ipadd in $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}} {{end}}' $container)
 		do
-		echo "IP ADDRESS OF CONTAINER [$container][$ipadd]"
+		echo "** $container - [$ipadd] **"
 		done
 	done
 else
@@ -29,7 +29,7 @@ else
 		then
 			for ipadd in $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}} {{end}}' $container)
 			do
-				echo "IP ADDRESS OF CONTAINER [$container][$ipadd]"
+				echo "** $container - [$ipadd] **"
 			done
 		exit
 		fi
