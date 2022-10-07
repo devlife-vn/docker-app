@@ -1,7 +1,7 @@
 # author: quandn
 ARG FPM_PHP_VERSION
 
-FROM php:7.4-fpm
+FROM php:${FPM_PHP_VERSION}-fpm
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
 # Set working directory

@@ -32,14 +32,17 @@ services:
       build:
         context: ./${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}
         args:
-          - FPM_PHP_VERSION:${PHP_VERSION}
+          - FPM_PHP_VERSION=${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
           - ./${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
           - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       ports:
-        - "8083:8083"
+        - 8083:8083
+      # extra_hosts:
+      #   - "auth.tanthanhdat.local:0.0.0.0"
+      #   - "marketing.tanthanhdat.local:0.0.0.0"
       external_links:
         - "nginx:api.tanthanhdat.local"
         - "nginx:auth.tanthanhdat.local"
@@ -58,7 +61,7 @@ services:
       build:
         context: ./${CONTAINER_FOLDER_NAME}job-server
         args:
-          - FPM_PHP_VERSION:${PHP_VERSION}
+          - FPM_PHP_VERSION=${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
@@ -84,7 +87,7 @@ services:
       build:
         context: ./${CONTAINER_FOLDER_NAME}client-php
         args:
-          - FPM_PHP_VERSION:${PHP_VERSION}
+          - FPM_PHP_VERSION=${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
@@ -110,7 +113,7 @@ services:
       build:
         context: ./${CONTAINER_FOLDER_NAME}api-php
         args:
-          - FPM_PHP_VERSION:${PHP_VERSION}
+          - FPM_PHP_VERSION=${PHP_VERSION}
           - PUID=${PHP_FPM_PUID}
           - PGID=${PHP_FPM_PGID}
       volumes:
