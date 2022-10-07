@@ -10,7 +10,7 @@ printf "ENTER CONTAINER ID:"
 
 read ipContainerID
 
-dockerInspect=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $ipContainerID`
-
-
-echo "HERE IS YOUR IP: " $dockerInspect
+for ipadd in $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}} {{end}}' $ipContainerID)
+do
+echo "** HERE IS YOUR IP: - [$ipadd] **"
+done
