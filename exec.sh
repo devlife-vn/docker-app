@@ -1,3 +1,5 @@
+clear
+
 dockerId=`docker ps -aqf "name=^*php-fpm*"`
 
 echo $dockerId

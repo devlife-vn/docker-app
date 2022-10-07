@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
+clear
 
 docker stop $(docker ps -aq)
+
 docker ps
 
 sudo kill $(sudo lsof -t -i:8080)

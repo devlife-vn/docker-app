@@ -1,4 +1,6 @@
 # container list
+clear
+
 docker ps
 
 ./find_ip_docker.sh -a
