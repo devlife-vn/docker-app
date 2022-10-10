@@ -1,5 +1,5 @@
 clear
 
-dockerId=`docker ps -aqf "name=^*quandn-mysql*"`
+dockerId=`docker ps -aqf "name=^*quandn-php-fpm*"`
 echo $dockerId
-docker exec -it --user=root $dockerId bash -c "mysql -u root -psecret; source db.sql;"
+docker exec -it --user=root $dockerId bash -c "./clear_cache.sh;"

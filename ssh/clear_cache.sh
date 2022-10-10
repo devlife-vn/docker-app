@@ -73,4 +73,4 @@ done
 
 cd ../
 
-./log_laravel.sh
+# ./log_laravel.sh
