@@ -1,6 +1,8 @@
 clear
 
-dockerId=`docker ps -aqf "name=^*php-fpm*"`
+echo "name=^${PWD##*/}-php-fpm";
+
+dockerId=`docker ps -aqf "name=^${PWD##*/}-php-fpm"`
 
 echo $dockerId
 

@@ -4,73 +4,77 @@ clear
 
 TIMESTAMP=$(date '+%Y-%m-%d')
 
-echo $TIMESTAMP
-
-cd authtanthanhdat/
-
 LOOP=1
 
+DIR="authtanthanhdat/"
 
-for (( i=1; i<=LOOP; i++ ))
-do
-  echo "*********************************************[ CLEAR CACHE SOURCE CLIENT --$i-- ]";
+if [ -d "$DIR" ]; then
 
-  ##php artisan key:gen
+  cd $DIR
 
-  php artisan cache:clear
+  for (( index=1; index<=LOOP; index++ ))
+  do
+    echo "*********************************************[ CLEAR CACHE SOURCE CLIENT --$TIMESTAMP-- --$index-- ]";
+    php artisan cache:clear
+    php artisan config:clear
+    php artisan route:cache
+    php artisan route:clear
+    composer dump-autoload
+    clear
+  done
+fi
 
-  php artisan config:clear
+DIR="../job/"
 
-  php artisan route:cache
+if [ -d "$DIR" ]; then
 
-  php artisan route:clear
+  cd $DIR
 
-  composer dump-autoload
-  ## ./clear_cache.sh
-  clear
-done
+  for (( index=1; index<=LOOP; index++ ))
+  do
+    echo "*********************************************[ CLEAR CACHE SOURCE JOB --$TIMESTAMP-- --$index-- ]";
+    php artisan cache:clear
+    php artisan config:clear
+    php artisan route:cache
+    php artisan route:clear
+    composer dump-autoload
+    clear
+  done
+fi
 
-cd ../job/
-for (( index=1; index<=LOOP; index++ ))
-do
-  echo "*********************************************[ CLEAR CACHE SOURCE JOB --$index-- ]";
-  ##php artisan key:gen
 
-  php artisan cache:clear
+DIR="../api/"
 
-  php artisan config:clear
+if [ -d "$DIR" ]; then
 
-  php artisan route:cache
+  cd $DIR
+  
+  for (( index=1; index<=LOOP; index++ ))
+  do
+    echo "*********************************************[ CLEAR CACHE SOURCE API --$TIMESTAMP-- --$index-- ]";
+    php artisan cache:clear
+    php artisan config:clear
+    php artisan route:cache
+    php artisan route:clear
+    composer dump-autoload
+    clear
+  done
+fi
 
-  php artisan route:clear
+DIR="../ademsios/"
 
-  composer dump-autoload
+if [ -d "$DIR" ]; then
 
-  ## ./clear_cache.sh
-  clear
-done
+  cd $DIR
 
-cd ../api/
-
-for (( index=1; index<=LOOP; index++ ))
-do
-  echo "*********************************************[ CLEAR CACHE SOURCE API --$index-- ]";
-  ##php artisan key:gen
-
-  php artisan cache:clear
-
-  php artisan config:clear
-
-  php artisan route:cache
-
-  php artisan route:clear
-
-  composer dump-autoload
-
-  ## ./clear_cache.sh
-  clear
-done
-
-cd ../
-
-# ./log_laravel.sh
+  for (( index=1; index<=LOOP; index++ ))
+  do
+    echo "*********************************************[ CLEAR CACHE SOURCE ademsios --$TIMESTAMP-- --$index-- ]";
+    php artisan cache:clear
+    php artisan config:clear
+    php artisan route:cache
+    php artisan route:clear
+    composer dump-autoload
+    clear
+  done
+fi
