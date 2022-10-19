@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-
-./stop.sh
-
 echo "================================================================= [CONTAINER START] ============================================================================================="
 
-docker-compose up php-fpm redis phpmyadmin mysql nginx
+docker-compose up -d php-fpm redis phpmyadmin mysql nginx
+
+clear
+
+docker ps
