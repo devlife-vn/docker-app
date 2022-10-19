@@ -53,5 +53,6 @@ Thumbs.db
 ssh_file/
 
 ssh_server.sh
+code.sh
 
 web
