@@ -26,8 +26,8 @@ volumes:
 services:
 #### php-fpm
     php-fpm:
-      image: ${DOCKER_NAME}${PHP_FPM_CONTAINER_NAME}
-      container_name: ${DOCKER_NAME}${PHP_FPM_CONTAINER_NAME}
+      image: ${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}
+      container_name: ${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}
       restart: unless-stopped
       build:
         context: ./${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}
@@ -55,8 +55,8 @@ services:
         - backend
 #### job-server
     job-server:
-      image: ${DOCKER_NAME}job-server
-      container_name: ${DOCKER_NAME}job-server
+      image: ${DOCKER_NAME}-job-server
+      container_name: ${DOCKER_NAME}-job-server
       restart: unless-stopped
       build:
         context: ./${CONTAINER_FOLDER_NAME}job-server
@@ -81,8 +81,8 @@ services:
         - backend
 #### php-fpm
     client-php:
-      image: ${DOCKER_NAME}client-php
-      container_name: ${DOCKER_NAME}client-php
+      image: ${DOCKER_NAME}-client-php
+      container_name: ${DOCKER_NAME}-client-php
       restart: unless-stopped
       build:
         context: ./${CONTAINER_FOLDER_NAME}client-php
@@ -107,8 +107,8 @@ services:
         - backend
 #### php-fpm
     api-php:
-      image: ${DOCKER_NAME}api-php
-      container_name: ${DOCKER_NAME}api-php
+      image: ${DOCKER_NAME}-api-php
+      container_name: ${DOCKER_NAME}-api-php
       restart: unless-stopped
       build:
         context: ./${CONTAINER_FOLDER_NAME}api-php
@@ -133,8 +133,8 @@ services:
         - backend
 #### nginx
     nginx:
-      image: ${DOCKER_NAME}nginx
-      container_name: ${DOCKER_NAME}nginx
+      image: ${DOCKER_NAME}-nginx
+      container_name: ${DOCKER_NAME}-nginx
       restart: unless-stopped
       ports:
         - "80:80"
@@ -157,8 +157,8 @@ services:
         - backend
 #### mysql
     mysql:
-      image: ${DOCKER_NAME}mysql
-      container_name: ${DOCKER_NAME}mysql
+      image: ${DOCKER_NAME}-mysql
+      container_name: ${DOCKER_NAME}-mysql
       build:
         context: ./${CONTAINER_FOLDER_NAME}mysql
         args:
@@ -179,8 +179,8 @@ services:
         - backend
 #### redis
     redis:
-      image: ${DOCKER_NAME}redis
-      container_name: ${DOCKER_NAME}redis
+      image: ${DOCKER_NAME}-redis
+      container_name: ${DOCKER_NAME}-redis
       restart: unless-stopped
       build: 
         context: ./${CONTAINER_FOLDER_NAME}redis
@@ -193,8 +193,8 @@ services:
         - backend
 #### phpmyadmin
     phpmyadmin:
-      image: ${DOCKER_NAME}phpmyadmin
-      container_name: ${DOCKER_NAME}phpmyadmin
+      image: ${DOCKER_NAME}-phpmyadmin
+      container_name: ${DOCKER_NAME}-phpmyadmin
       restart: unless-stopped
       build:
         context: ./${CONTAINER_FOLDER_NAME}phpmyadmin
