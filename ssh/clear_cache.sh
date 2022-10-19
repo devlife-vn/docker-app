@@ -12,10 +12,9 @@ if [ -d "$DIR" ]; then
 
   cd $DIR
 
-  for (( i=1; i<=LOOP; i++ ))
+  for (( index=1; index<=LOOP; index++ ))
   do
-    echo $TIMESTAMP
-    echo "*********************************************[ CLEAR CACHE SOURCE CLIENT --$i-- ]";
+    echo "*********************************************[ CLEAR CACHE SOURCE CLIENT --$TIMESTAMP-- --$index-- ]";
     php artisan cache:clear
     php artisan config:clear
     php artisan route:cache
@@ -33,8 +32,7 @@ if [ -d "$DIR" ]; then
 
   for (( index=1; index<=LOOP; index++ ))
   do
-    echo $TIMESTAMP
-    echo "*********************************************[ CLEAR CACHE SOURCE JOB --$index-- ]";
+    echo "*********************************************[ CLEAR CACHE SOURCE JOB --$TIMESTAMP-- --$index-- ]";
     php artisan cache:clear
     php artisan config:clear
     php artisan route:cache
@@ -53,8 +51,7 @@ if [ -d "$DIR" ]; then
   
   for (( index=1; index<=LOOP; index++ ))
   do
-    echo $TIMESTAMP
-    echo "*********************************************[ CLEAR CACHE SOURCE API --$index-- ]";
+    echo "*********************************************[ CLEAR CACHE SOURCE API --$TIMESTAMP-- --$index-- ]";
     php artisan cache:clear
     php artisan config:clear
     php artisan route:cache
@@ -72,8 +69,7 @@ if [ -d "$DIR" ]; then
 
   for (( index=1; index<=LOOP; index++ ))
   do
-    echo $TIMESTAMP
-    echo "*********************************************[ CLEAR CACHE SOURCE ademsios --$index-- ]";
+    echo "*********************************************[ CLEAR CACHE SOURCE ademsios --$TIMESTAMP-- --$index-- ]";
     php artisan cache:clear
     php artisan config:clear
     php artisan route:cache
