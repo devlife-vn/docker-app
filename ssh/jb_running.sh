@@ -1,20 +1,14 @@
 #!/bin/bash
-cd api/
+DIR=$PWD/api/
 
-clear
+if [ -d "$DIR" ]; then
+  cd $DIR
 
-echo "********************************************[ Horizon is running success ]";
+    clear
 
-php artisan horizon:terminate
+    echo "********************************************[ Horizon is running success ]";
 
-php artisan horizon &
+    php artisan horizon:terminate
 
-cd ..
-
-cd job
-
-php artisan horizon:terminate
-
-php artisan horizon &
-
-
+    php artisan horizon
+fi
