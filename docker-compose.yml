@@ -27,6 +27,8 @@ services:
 #### php-fpm
     php-fpm:
       image: ${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}
+      environment:
+        - APP_ENV=local
       container_name: ${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}
       restart: unless-stopped
       build:
