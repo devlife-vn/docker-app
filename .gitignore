@@ -56,3 +56,6 @@ ssh_server.sh
 code.sh
 
 web
+
+.code*.sh
+
