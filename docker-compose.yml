@@ -1,134 +1,127 @@
-# author: quandn
-
 version: '3.5'
-
 networks:
   frontend:
-    driver: ${NETWORKS_DRIVER}
+    driver: '${NETWORKS_DRIVER}'
   backend:
-    driver: ${NETWORKS_DRIVER}
-
+    driver: '${NETWORKS_DRIVER}'
 volumes:
   mysql:
-    driver: ${VOLUMES_DRIVER}
+    driver: '${VOLUMES_DRIVER}'
   phpmyadmin:
-    driver: ${VOLUMES_DRIVER}
+    driver: '${VOLUMES_DRIVER}'
   redis:
-    driver: ${VOLUMES_DRIVER}
+    driver: '${VOLUMES_DRIVER}'
   client-php:
-    driver: ${VOLUMES_DRIVER}
+    driver: '${VOLUMES_DRIVER}'
   api-php:
-    driver: ${VOLUMES_DRIVER}
+    driver: '${VOLUMES_DRIVER}'
   job-server:
-    driver: ${VOLUMES_DRIVER}
+    driver: '${VOLUMES_DRIVER}'
   php-fpm:
-    driver: ${VOLUMES_DRIVER}
+    driver: '${VOLUMES_DRIVER}'
 services:
-#### php-fpm
-    php-fpm:
-      image: ${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}
-      environment:
-        - APP_ENV=local
-      container_name: ${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}
-      restart: unless-stopped
-      build:
-        context: ./${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}
-        args:
-          - FPM_PHP_VERSION=${PHP_VERSION}
-          - PUID=${PHP_FPM_PUID}
-          - PGID=${PHP_FPM_PGID}
-      volumes:
-          - ./${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
-          - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      ports:
-        - 8083:8083
-      # extra_hosts:
-      #   - "auth.tanthanhdat.local:0.0.0.0"
-      #   - "marketing.tanthanhdat.local:0.0.0.0"
-      external_links:
-        - "nginx:api.tanthanhdat.local"
-        - "nginx:auth.tanthanhdat.local"
-        - "nginx:marketing.tanthanhdat.local"
-        - "nginx:job.tanthanhdat.local"
-      tty: true
-      expose:
-        - "8083"
-      networks:
-        - backend
-#### nginx
-    nginx:
-      image: ${DOCKER_NAME}-nginx
-      container_name: ${DOCKER_NAME}-nginx
-      restart: unless-stopped
-      ports:
-        - "80:80"
-      build:
-        context: ./${CONTAINER_FOLDER_NAME}nginx
-        args:
-          - CHANGE_SOURCE=${CHANGE_SOURCE}
-          - NGINX_PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
-          - NGINX_PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
-          - http_proxy
-          - https_proxy
-          - no_proxy
-      volumes:
-        - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-        - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
-        - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
-        - ${NGINX_SSL_PATH}:/etc/nginx/ssl
-      networks:
-        - frontend
-        - backend
-#### mysql
-    mysql:
-      image: ${DOCKER_NAME}-mysql
-      container_name: ${DOCKER_NAME}-mysql
-      build:
-        context: ./${CONTAINER_FOLDER_NAME}mysql
-        args:
-          - MYSQL_VERSION=${MYSQL_VERSION}
-      restart: unless-stopped
-      environment:
-        - MYSQL_DATABASE=${MYSQL_DATABASE}
-        - MYSQL_USER=${MYSQL_USER}
-        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-        - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-        - TZ=${WORKSPACE_TIMEZONE}
-      volumes:
-      - ./${CONTAINER_FOLDER_NAME}mysql:/docker-entrypoint-initdb.d
-      - ./${CONTAINER_FOLDER_NAME}mysql/data:/db-data
-      ports:
-        - "3306:3306"
-      networks:
-        - backend
-#### redis
-    redis:
-      image: ${DOCKER_NAME}-redis
-      container_name: ${DOCKER_NAME}-redis
-      restart: unless-stopped
-      build: 
-        context: ./${CONTAINER_FOLDER_NAME}redis
-      volumes:
-        - ${DATA_PATH_HOST}/redis:/data
-        - ${REDIS_HOST_LOG_PATH}:/var/log/redis/redis-server.log
-      ports:
-        - "${REDIS_PORT}:6379"
-      networks:
-        - backend
-#### phpmyadmin
-    phpmyadmin:
-      image: ${DOCKER_NAME}-phpmyadmin
-      container_name: ${DOCKER_NAME}-phpmyadmin
-      restart: unless-stopped
-      build:
-        context: ./${CONTAINER_FOLDER_NAME}phpmyadmin
-      environment:
-        - PMA_ARBITRARY=1
-        - MYSQL_USER=${NETWORKS_DRIVER}
-        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-        - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-      ports:
-        - "${PMA_PORT}:80"
-      networks:
-        - frontend
-        - backend
+  php-fpm:
+    image: '${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}'
+    environment:
+      - APP_ENV=local
+    container_name: '${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}'
+    restart: unless-stopped
+    build:
+      context: './${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}'
+      args:
+        - 'FPM_PHP_VERSION=${PHP_VERSION}'
+        - 'PUID=${PHP_FPM_PUID}'
+        - 'PGID=${PHP_FPM_PGID}'
+    volumes:
+      - './${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini'
+      - '${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}'
+    ports:
+      - '8083:8083'
+    external_links:
+      - 'nginx:api.tanthanhdat.local'
+      - 'nginx:auth.tanthanhdat.local'
+      - 'nginx:marketing.tanthanhdat.local'
+      - 'nginx:job.tanthanhdat.local'
+    tty: true
+    expose:
+      - '8083'
+    networks:
+      - backend
+  nginx:
+    image: '${DOCKER_NAME}-nginx'
+    container_name: '${DOCKER_NAME}-nginx'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    build:
+      context: './${CONTAINER_FOLDER_NAME}nginx'
+      args:
+        - 'CHANGE_SOURCE=${CHANGE_SOURCE}'
+        - 'NGINX_PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}'
+        - 'NGINX_PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}'
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    volumes:
+      - '${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}'
+      - '${NGINX_HOST_LOG_PATH}:/var/log/nginx'
+      - '${NGINX_SITES_PATH}:/etc/nginx/sites-available'
+      - '${NGINX_SSL_PATH}:/etc/nginx/ssl'
+    networks:
+      - frontend
+      - backend
+  mysql:
+    image: '${DOCKER_NAME}-mysql'
+    container_name: '${DOCKER_NAME}-mysql'
+    build:
+      context: './${CONTAINER_FOLDER_NAME}mysql'
+      args:
+        - 'MYSQL_VERSION=${MYSQL_VERSION}'
+        - 'MYSQL_DATABASE=${MYSQL_DATABASE}'
+        - 'MYSQL_USER=${MYSQL_USER}'
+        - 'MYSQL_PASSWORD=${MYSQL_PASSWORD}'
+        - 'MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}'
+        - 'TZ=${WORKSPACE_TIMEZONE}'
+    restart: unless-stopped
+    environment:
+      - 'MYSQL_DATABASE=${MYSQL_DATABASE}'
+      - 'MYSQL_USER=${MYSQL_USER}'
+      - 'MYSQL_PASSWORD=${MYSQL_PASSWORD}'
+      - 'MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}'
+      - 'TZ=${WORKSPACE_TIMEZONE}'
+    volumes:
+      - './${CONTAINER_FOLDER_NAME}mysql:/docker-entrypoint-initdb.d'
+      - './${CONTAINER_FOLDER_NAME}mysql/data:/db-data'
+    ports:
+      - '3306:3306'
+    networks:
+      - backend
+  redis:
+    image: '${DOCKER_NAME}-redis'
+    container_name: '${DOCKER_NAME}-redis'
+    restart: unless-stopped
+    build:
+      context: './${CONTAINER_FOLDER_NAME}redis'
+    volumes:
+      - '${DATA_PATH_HOST}/redis:/data'
+      - '${REDIS_HOST_LOG_PATH}:/var/log/redis/redis-server.log'
+    ports:
+      - '${REDIS_PORT}:6379'
+    networks:
+      - backend
+  phpmyadmin:
+    image: '${DOCKER_NAME}-phpmyadmin'
+    container_name: '${DOCKER_NAME}-phpmyadmin'
+    restart: unless-stopped
+    build:
+      context: './${CONTAINER_FOLDER_NAME}phpmyadmin'
+    environment:
+      - PMA_ARBITRARY=1
+      - 'MYSQL_USER=${NETWORKS_DRIVER}'
+      - 'MYSQL_PASSWORD=${MYSQL_PASSWORD}'
+      - 'MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}'
+    ports:
+      - '${PMA_PORT}:80'
+    networks:
+      - frontend
+      - backend

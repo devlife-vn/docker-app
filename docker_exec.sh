@@ -14,3 +14,4 @@ echo $dockerId
 docker exec -it --user=root $dockerId bash
 
 
+# docker exec -i tanthanhdat-redis redis-cli FLUSHALL
