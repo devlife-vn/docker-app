@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 clear
 
 dockerId=`docker ps -aqf "name=^${PWD##*/}-php-fpm"`

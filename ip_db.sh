@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 clear
 
 google-chrome "http://localhost:8081";

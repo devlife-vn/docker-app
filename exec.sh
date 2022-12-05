@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 clear
 
 echo "name=^${PWD##*/}-php-fpm";
