@@ -57,5 +57,9 @@ code.sh
 
 web
 
-.code*.sh
+.code_*.sh
 
+logs
+
+ademsios.sh
+tanthanhdat.sh
