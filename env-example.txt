@@ -1,5 +1,5 @@
 APP_CODE_PATH_CONTAINER=/var/www
-APP_CODE_PATH_HOST=./web/
+APP_CODE_PATH_HOST=../web/
 APP_DOMAIN_NAME=tanthanhdat.local
 WORKING_DIR=./src
 SOURCE_CLIENT_FOLDER=authtanthanhdat/
@@ -40,3 +40,6 @@ REDIS_PORT=6379
 REDIS_VERSION=latest
 PHP_FPM_PUID=1000
 PHP_FPM_PGID=1000
+
+#git config --global user.name "Quân Đặng Ngọc"
+#git config --global user.email "quandn36@gmail.com
