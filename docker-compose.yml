@@ -43,6 +43,7 @@ services:
       - 'nginx:marketing.tanthanhdat.local'
       - 'nginx:job.tanthanhdat.local'
       - 'nginx:dochoitintin.local'
+      - 'nginx:manufacture.tanthanhdat.local'
     tty: true
     expose:
       - '8083'
