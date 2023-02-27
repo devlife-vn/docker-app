@@ -25,7 +25,7 @@ services:
     environment:
       - APP_ENV=local
     container_name: '${DOCKER_NAME}-${PHP_FPM_CONTAINER_NAME}'
-    restart: unless-stopped
+    restart: always
     build:
       context: './${CONTAINER_FOLDER_NAME}${PHP_FPM_CONTAINER_NAME}'
       args:
@@ -52,7 +52,7 @@ services:
   nginx:
     image: '${DOCKER_NAME}-nginx'
     container_name: '${DOCKER_NAME}-nginx'
-    restart: unless-stopped
+    restart: always
     ports:
       - '80:80'
     build:
@@ -84,7 +84,7 @@ services:
         - 'MYSQL_PASSWORD=${MYSQL_PASSWORD}'
         - 'MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}'
         - 'TZ=${WORKSPACE_TIMEZONE}'
-    restart: unless-stopped
+    restart: always
     environment:
       - 'MYSQL_DATABASE=${MYSQL_DATABASE}'
       - 'MYSQL_USER=${MYSQL_USER}'
@@ -101,7 +101,7 @@ services:
   redis:
     image: '${DOCKER_NAME}-redis'
     container_name: '${DOCKER_NAME}-redis'
-    restart: unless-stopped
+    restart: always
     build:
       context: './${CONTAINER_FOLDER_NAME}redis'
     volumes:
@@ -114,7 +114,7 @@ services:
   phpmyadmin:
     image: '${DOCKER_NAME}-phpmyadmin'
     container_name: '${DOCKER_NAME}-phpmyadmin'
-    restart: unless-stopped
+    restart: always
     build:
       context: './${CONTAINER_FOLDER_NAME}phpmyadmin'
     environment:
