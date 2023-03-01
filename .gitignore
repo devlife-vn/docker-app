@@ -63,3 +63,6 @@ logs
 
 ademsios.sh
 tanthanhdat.sh
+
+# ignore folder ssl
+containers/nginx/ssl
