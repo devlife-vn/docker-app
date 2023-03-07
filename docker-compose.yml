@@ -124,6 +124,7 @@ services:
       - MYSQL_USER=${NETWORKS_DRIVER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - UPLOAD_LIMIT=${UPLOAD_LIMIT}
     ports:
       - ${PMA_PORT}:80
     networks:
