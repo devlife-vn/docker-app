@@ -25,3 +25,10 @@ Of course you can set your config file to use right CA files and use the 'openss
 
 # You can verify your certificate like this:
 openssl verify -verbose -CAfile rootCA.pem client1.pem
+
+
+# Command common
+## Command copy file between docker container and local machine
+`Nếu như muốn copy file từ trong container docker ra ngoài máy thật thì đường dẫn của file trong container docker sẻ để phía trước, đường dẫn tới máy thật phía sau. Và nếu như muốn copy ngược lại thì đổi vị trí của 2 đường dẫn`
+> docker cp CONTAINER_NAME:/`đường_dẫn_file_trong_container`**[_khoảng trắng_]**`đường_dẫn_lưu_file_trong_máy_thật`
+
