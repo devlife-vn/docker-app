@@ -44,6 +44,9 @@ services:
       - nginx:job.tanthanhdat.local
       - nginx:dochoitintin.local
       - nginx:manufacture.tanthanhdat.local
+      - nginx:vand.local
+      - nginx:serverwarehouse.local
+      - nginx:custom-framework.local
     tty: true
     expose:
       - 8083
