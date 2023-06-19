@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-code $PWD/../web/ademsios
+# code $PWD/../web/ademsios
