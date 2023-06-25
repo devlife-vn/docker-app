@@ -6,16 +6,19 @@ if [ ! -d "/etc/nginx/ssl/ca-certificates" ]; then
 fi
 
 cd /etc/nginx/ssl/ca-certificates;
-if [ ! -f "/etc/nginx/ssl/ca-certificates/myCA.key" ]; then
+if [ ! -f "/etc/nginx/ssl/ca-certificates/rootCA.key" ]; then
+
+    echo "Generating root ca certificate key"
     # Generate private key
-    openssl genrsa -des3 -out myCA.key 2048
+    openssl genrsa -des3 -out rootCA.key 2048
     # Generate root certificate
-    openssl req -x509 -new -nodes -key myCA.key -sha256 -days 825 -out myCA.pem
+    openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 825 -out rootCA.pem
 fi
 
 cd ..;
 
 if [ ! -f /etc/nginx/ssl/$NAME.key ]; then
+echo "Generating $NAME ca certificate key"
 
 # Generate a private key
 openssl genrsa -out /etc/nginx/ssl/$NAME.key 2048
@@ -35,6 +38,6 @@ DNS.2 = bar.$NAME # Optionally, add additional domains (I've added a subdomain h
 EOF
 
 # Create the signed certificate
-openssl x509 -req -in /etc/nginx/ssl/$NAME.csr -CA /etc/nginx/ssl/ca-certificates/myCA.pem -CAkey /etc/nginx/ssl/ca-certificates/myCA.key -CAcreateserial -out /etc/nginx/ssl/$NAME.crt -days 825 -sha256 -extfile /etc/nginx/ssl/$NAME.ext
+openssl x509 -req -in /etc/nginx/ssl/$NAME.csr -CA /etc/nginx/ssl/ca-certificates/rootCA.pem -CAkey /etc/nginx/ssl/ca-certificates/rootCA.key -CAcreateserial -out /etc/nginx/ssl/$NAME.crt -days 825 -sha256 -extfile /etc/nginx/ssl/$NAME.ext
 
 fi
