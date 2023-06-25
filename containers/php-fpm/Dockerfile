@@ -11,7 +11,7 @@ RUN install-php-extensions bcmath
 RUN install-php-extensions bz2
 RUN install-php-extensions calendar
 RUN install-php-extensions csv
-RUN install-php-extensions decimal
+# RUN install-php-extensions decimal
 RUN install-php-extensions exif
 RUN install-php-extensions gd
 RUN install-php-extensions geospatial
