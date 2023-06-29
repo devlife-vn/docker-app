@@ -100,3 +100,6 @@ server {
 Trong trình duyệt tìm mục certificates và import rootCA.pem vào trong trình duyệt, tùy máy tính sẽ có cách import khác nhau
 ~~~
 
+# Nếu install source vue mà lỗi create vue project
+> vue config -s packageManager npm
+![Alt text](https://lh3.googleusercontent.com/u/0/drive-viewer/AFGJ81oLTP7dp44SDDG_sdlT-RbuGH2CL6andk5j_YsxP-FtsePgWhPKS8XmM6eqtzEZtlPSaL28y9VGTu32-XaO5DQz9ZNI=w3024-h1730)

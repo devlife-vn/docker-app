@@ -67,6 +67,8 @@ RUN apt-get install -y nodejs
 RUN apt-get install -y yarn
 RUN apt-get update && apt-get install git
 
+RUN npm install -g @vue/cli
+
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY ./custom.ini $PHP_INI_DIR/conf.d/xy-custom.ini
 COPY ./pools/* $PHP_INI_DIR/pool.d/
