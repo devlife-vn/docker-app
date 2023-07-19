@@ -72,3 +72,11 @@ tanthanhdat.sh
 ./containers/php-fpm/logs
 ./containers/mysql/logs
 ./containers/phpmyadmin/logs
+
+./containers/nginx/ssl/*.local.crt
+./containers/nginx/ssl/*.local.csr
+./containers/nginx/ssl/*.local.ext
+./containers/nginx/ssl/*.local.key
+
+!./containers/nginx/ssl/ca-certificates
+./ssh/clear_cache.sh
