@@ -7,11 +7,11 @@ echo "================================================================= [CONTAIN
 
 docker-compose up -d php-fpm redis phpmyadmin mysql nginx
 
-clear
+# clear
 
 docker ps
 
-notify-send "Đã bật hết tất cả container, bạn có thể chạy dự án rồi"
+# notify-send "Đã bật hết tất cả container, bạn có thể chạy dự án rồi"
 
 # byobu send-keys
 # byobu split-window -v

@@ -17,4 +17,4 @@ sudo kill $(sudo lsof -t -i:8084)
 sudo kill $(sudo lsof -t -i:6379)
 
 
-clear
+# clear

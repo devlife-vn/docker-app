@@ -30,4 +30,4 @@ docker ps
 
 docker-compose up --build --force-recreate --remove-orphans --no-deps -d php-fpm
 docker ps
-clear
+# clear
