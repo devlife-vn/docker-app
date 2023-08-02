@@ -1,0 +1,4 @@
+./*.local.crt
+./*.local.csr
+./*.local.ext
+./*.local.key

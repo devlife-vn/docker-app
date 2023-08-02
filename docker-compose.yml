@@ -47,6 +47,7 @@ services:
       - nginx:vand.local
       - nginx:serverwarehouse.local
       - nginx:custom-framework.local
+      - nginx:sgtimes.local
     tty: true
     expose:
       - 8083
