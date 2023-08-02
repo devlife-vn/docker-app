@@ -55,7 +55,7 @@ ssh_file/
 ssh_server.sh
 code.sh
 
-./web
+web
 
 .code_*.sh
 
