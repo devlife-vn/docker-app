@@ -125,9 +125,18 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create system user to run Composer and Artisan Commands
+# Install NVM
+RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+ENV NVM_DIR ~/.nvm
+ENV NODE_VERSION 18.17.0
 
-# # Configure non-root user.
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install nodejs -y
+RUN apt-get install yarn -y
+RUN npm install -g @vue/cli
+RUN npm install -g cross-env
+
+# Create system user to run Composer and Artisan Commands
 ARG PUID=1000
 ENV PUID ${PUID}
 ARG PGID=1000

@@ -3,7 +3,7 @@
 
 clear
 
-echo "================================================================= [CONTAINER START] ============================================================================================="
+echo "========= [CONTAINER START] ========="
 
 docker-compose up -d php-fpm redis phpmyadmin mysql nginx
 

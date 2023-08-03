@@ -5,7 +5,7 @@ clear
 
 docker system prune -a --volumes
 
-echo "================================================================= [CONTAINER REBUILD] ============================================================================================="
+echo "=============== [CONTAINER REBUILD] ==============="
 
 
 docker-compose up --build --force-recreate --remove-orphans --no-deps -d mysql
