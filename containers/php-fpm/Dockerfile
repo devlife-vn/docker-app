@@ -133,8 +133,8 @@ ENV NODE_VERSION 18.17.0
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install nodejs -y
 RUN apt-get install yarn -y
-RUN npm install @vue/cli
-RUN npm install cross-env
+# RUN npm install @vue/cli
+# RUN npm install cross-env
 
 # Create system user to run Composer and Artisan Commands
 ARG PUID=1000
