@@ -79,4 +79,22 @@ if [ -d "$DIR" ]; then
   done
 fi
 
-echo "*********************************************[ clear cache successfuly..... ]*********************************************";
+echo "********************[ clear cache successfuly..... ]********************";
+
+DIR="/var/www/sgtimes/"
+
+if [ -d "$DIR" ]; then
+
+  cd $DIR
+
+  for (( index=1; index<=LOOP; index++ ))
+  do
+    echo "*********************************************[ --$DIR-- --$TIMESTAMP-- --$index-- ]";
+    php artisan cache:clear
+    php artisan config:clear
+    php artisan route:clear
+    php artisan route:cache
+    php artisan optimize
+    composer dump-autoload
+  done
+fi
