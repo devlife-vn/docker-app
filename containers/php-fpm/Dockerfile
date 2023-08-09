@@ -114,7 +114,13 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    nano \
+    vim && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -133,8 +139,8 @@ ENV NODE_VERSION 18.17.0
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install nodejs -y
 RUN apt-get install yarn -y
-# RUN npm install @vue/cli
-# RUN npm install cross-env
+RUN npm install @vue/cli
+RUN npm install cross-env
 
 # Create system user to run Composer and Artisan Commands
 ARG PUID=1000
