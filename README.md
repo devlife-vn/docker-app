@@ -103,3 +103,13 @@ Trong trình duyệt tìm mục certificates và import rootCA.pem vào trong tr
 # Nếu install source vue mà lỗi create vue project
 > vue config -s packageManager npm
 ![Alt text](https://lh3.googleusercontent.com/u/0/drive-viewer/AFGJ81oLTP7dp44SDDG_sdlT-RbuGH2CL6andk5j_YsxP-FtsePgWhPKS8XmM6eqtzEZtlPSaL28y9VGTu32-XaO5DQz9ZNI=w3024-h1730)
+
+
+// loi hay mac phai khi dung git
+
+Git Push Error: insufficient permission for adding an object to repository database
+
+~~~
+> cd project root./.git/
+sudo chown -R "${USER:-$(id -un)}" .
+~~~
