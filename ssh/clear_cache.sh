@@ -1,100 +1,33 @@
 #!/bin/bash
-
-clear
-
 TIMESTAMP=$(date '+%Y-%m-%d')
-
 LOOP=1
-
-DIR="authtanthanhdat/"
-
-if [ -d "$DIR" ]; then
-
-  cd $DIR
-
-  for (( index=1; index<=LOOP; index++ ))
-  do
-    echo "*********************************************[ CLEAR CACHE SOURCE CLIENT --$TIMESTAMP-- --$index-- ]";
-    php artisan cache:clear
-    php artisan config:clear
-    php artisan route:cache
-    php artisan route:clear
-    composer dump-autoload
-    clear
-  done
+name=$1
+if [ -z "$name" ]; then
+    read -p "Nhập tên project: " PROJECTNAME;
+    if [ -z "$PROJECTNAME" ]; then
+      echo "bye bye";
+    else
+      name=$PROJECTNAME
+    fi
 fi
 
-DIR="../job/"
+if [ ! -z "$name" ]; then
+  DIR="/var/www/$name/"
 
-if [ -d "$DIR" ]; then
-
-  cd $DIR
-
-  for (( index=1; index<=LOOP; index++ ))
-  do
-    echo "*********************************************[ CLEAR CACHE SOURCE JOB --$TIMESTAMP-- --$index-- ]";
-    php artisan cache:clear
-    php artisan config:clear
-    php artisan route:cache
-    php artisan route:clear
-    composer dump-autoload
-    clear
-  done
-fi
-
-
-DIR="../api/"
-
-if [ -d "$DIR" ]; then
-
-  cd $DIR
-  
-  for (( index=1; index<=LOOP; index++ ))
-  do
-    echo "*********************************************[ CLEAR CACHE SOURCE API --$TIMESTAMP-- --$index-- ]";
-    php artisan cache:clear
-    php artisan config:clear
-    php artisan route:cache
-    php artisan route:clear
-    composer dump-autoload
-    clear
-  done
-fi
-
-DIR="../ademsios/"
-
-if [ -d "$DIR" ]; then
-
-  cd $DIR
-
-  for (( index=1; index<=LOOP; index++ ))
-  do
-    echo "*********************************************[ CLEAR CACHE SOURCE ademsios --$TIMESTAMP-- --$index-- ]";
-    php artisan cache:clear
-    php artisan config:clear
-    php artisan route:cache
-    php artisan route:clear
-    composer dump-autoload
-    clear
-  done
-fi
-
-echo "********************[ clear cache successfuly..... ]********************";
-
-DIR="/var/www/sgtimes/"
-
-if [ -d "$DIR" ]; then
-
-  cd $DIR
-
-  for (( index=1; index<=LOOP; index++ ))
-  do
-    echo "*********************************************[ --$DIR-- --$TIMESTAMP-- --$index-- ]";
-    php artisan cache:clear
-    php artisan config:clear
-    php artisan route:clear
-    php artisan route:cache
-    php artisan optimize
-    composer dump-autoload
-  done
+  if [ -d "$DIR" ]; then
+      cd $DIR
+      for (( index=1; index<=LOOP; index++ ))
+      do
+        echo "********************[$DIR]***[$TIMESTAMP]***[$index]********************";
+        php artisan cache:clear
+        php artisan config:clear
+        php artisan route:clear
+        php artisan route:cache
+        php artisan optimize
+        composer dump-autoload
+      done
+      echo "********************[ clear cache successfuly..... ]********************";
+  else
+      echo "Project [$name] không tồn tại";
+  fi
 fi

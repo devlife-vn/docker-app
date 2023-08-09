@@ -1,8 +1,18 @@
 #!/bin/bash
-NAME=$1
-if [ ! -z "$NAME" ]; then
-    if [ -d "$NAME" ]; then
-        cd $NAME/
+name=$1
+if [ -z "$name" ]; then
+    read -p "Nhập tên project: " PROJECTNAME;
+    if [ -z "$PROJECTNAME" ]; then
+      echo "bye bye";
+    else
+      name=$PROJECTNAME
+    fi
+fi
+
+if [ ! -z "$name" ]; then
+    DIR="/var/www/$name/"
+    if [ -d "$DIR" ]; then
+        cd $DIR/
 
         FILE="storage/logs/laravel-$(date '+%Y-%m-%d').log";
 
@@ -19,9 +29,9 @@ if [ ! -z "$NAME" ]; then
             fi
             echo "*********************************************[ $FILE ***** does not exist ]";
         fi
+    else
+        echo "Project [$name] không tồn tại";
     fi
-else
-    echo "vui lòng nhập tên project";
 fi
 
 
