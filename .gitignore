@@ -80,3 +80,6 @@ tanthanhdat.sh
 
 !./containers/nginx/ssl/ca-certificates
 ./ssh/clear_cache.sh
+
+###### ignore nginx file
+containers/nginx/sites/sgtimes.conf
