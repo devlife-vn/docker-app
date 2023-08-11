@@ -113,3 +113,19 @@ Git Push Error: insufficient permission for adding an object to repository datab
 > cd project root./.git/
 sudo chown -R "${USER:-$(id -un)}" .
 ~~~
+
+// How can I fix apt error "W: Target Packages ... is configured multiple times"?
+
+~~~
+Install the prerequisites:
+
+> sudo apt install python3-apt
+file: other_files/aptsources-cleanup.pyz
+
+> chmod a+x aptsources-cleanup.pyz
+
+Usage:
+From the download location of the PYZ bundle (see step 2 above) run:
+
+> sudo ./aptsources-cleanup.pyz
+~~~
