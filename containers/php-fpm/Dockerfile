@@ -32,13 +32,15 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install NVM
-RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
-ENV NVM_DIR ~/.nvm
-ENV NODE_VERSION 18.17.0
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    npm
+RUN npm install npm@latest -g && \
+    npm install n -g && \
+    n latest
 
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get install nodejs -y
+# RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
+# RUN apt-get install nodejs -y
 RUN apt-get install yarn -y
 # install the vue-cli
 RUN npm install --quiet --global \
