@@ -46,7 +46,7 @@ RUN apt-get install yarn -y
 
 # install the vue-cli
 RUN npm install @vue/cli
-RUN npm install @vue/cli-service-global
+RUN npm install @vue/cli-service
 RUN npm install cross-env
       
 # Create system user to run Composer and Artisan Commands
