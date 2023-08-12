@@ -83,6 +83,6 @@ tanthanhdat.sh
 ./ssh/clear_cache.sh
 
 ###### ignore nginx file
-./containers/nginx/sites/sgtimes.conf
-./containers/nginx/sites/nginx.conf
-./containers/nginx/sites/api_nginx.conf
+containers/nginx/sites/sgtimes.conf
+containers/nginx/sites/nginx.conf
+containers/nginx/sites/api_nginx.conf
