@@ -39,14 +39,16 @@ RUN npm install npm@latest -g && \
     npm install n -g && \
     n latest
 
-# RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
-# RUN apt-get install nodejs -y
-RUN apt-get install yarn -y
-# install the vue-cli
-RUN npm install --quiet --global \
-      @vue/cli \
-      cross-env
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install nodejs -y
 
+RUN apt-get install yarn -y
+
+# install the vue-cli
+RUN npm install @vue/cli
+RUN npm install @vue/cli-service-global
+RUN npm install cross-env
+      
 # Create system user to run Composer and Artisan Commands
 ARG PUID=1000
 ENV PUID ${PUID}
