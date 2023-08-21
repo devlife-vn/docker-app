@@ -1,4 +1,4 @@
-# These are some examples of commonly ignored file patterns.
+ These are some examples of commonly ignored file patterns.
 # You should customize this list as applicable to your project.
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
@@ -79,7 +79,10 @@ tanthanhdat.sh
 ./containers/nginx/ssl/*.local.key
 
 !./containers/nginx/ssl/ca-certificates
+
 ./ssh/clear_cache.sh
 
 ###### ignore nginx file
 containers/nginx/sites/sgtimes.conf
+containers/nginx/sites/nginx.conf
+containers/nginx/sites/api_nginx.conf

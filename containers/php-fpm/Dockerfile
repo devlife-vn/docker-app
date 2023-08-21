@@ -1,4 +1,73 @@
-# # author: quandn
+# author: quandn
+ARG FPM_PHP_VERSION
+
+FROM php:${FPM_PHP_VERSION}-fpm
+
+# Arguments defined in docker-compose.yml
+ARG user
+ARG uid
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    nano \
+    vim && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    npm
+RUN npm install npm@latest -g && \
+    npm install n -g && \
+    n latest
+
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install nodejs -y
+
+RUN apt-get install yarn -y
+
+# install the vue-cli
+RUN npm install @vue/cli
+RUN npm install @vue/cli-service
+RUN npm install cross-env
+      
+# Create system user to run Composer and Artisan Commands
+ARG PUID=1000
+ENV PUID ${PUID}
+ARG PGID=1000
+ENV PGID ${PGID}
+RUN groupmod -o -g ${PGID} www-data && \
+    usermod -o -u ${PUID} -g www-data www-data
+
+# Set working directory
+WORKDIR /var/www
+
+RUN chown -R www-data:www-data /var/www
+USER www-data
+
+EXPOSE 80 8083
+
+
+
+
 # ARG FPM_PHP_VERSION
 
 # FROM php:${FPM_PHP_VERSION}-fpm
@@ -95,64 +164,3 @@
 # EXPOSE 80 8083
 
 # CMD ["php-fpm"]
-
-
-
-ARG FPM_PHP_VERSION
-
-FROM php:${FPM_PHP_VERSION}-fpm
-
-# Arguments defined in docker-compose.yml
-ARG user
-ARG uid
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    nano \
-    vim && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get autoremove -y && \
-    apt-get clean -y && \
-    rm -rf /var/lib/apt/lists/*
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-
-# Get latest Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Install NVM
-RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
-ENV NVM_DIR ~/.nvm
-ENV NODE_VERSION 18.17.0
-
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get install nodejs -y
-RUN apt-get install yarn -y
-RUN npm install @vue/cli
-RUN npm install cross-env
-
-# Create system user to run Composer and Artisan Commands
-ARG PUID=1000
-ENV PUID ${PUID}
-ARG PGID=1000
-ENV PGID ${PGID}
-RUN groupmod -o -g ${PGID} www-data && \
-    usermod -o -u ${PUID} -g www-data www-data
-
-# Set working directory
-WORKDIR /var/www
-
-USER $user
-
-EXPOSE 80 8083
