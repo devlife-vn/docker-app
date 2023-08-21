@@ -11,12 +11,6 @@ volumes:
     driver: ${VOLUMES_DRIVER}
   redis:
     driver: ${VOLUMES_DRIVER}
-  client-php:
-    driver: ${VOLUMES_DRIVER}
-  api-php:
-    driver: ${VOLUMES_DRIVER}
-  job-server:
-    driver: ${VOLUMES_DRIVER}
   php-fpm:
     driver: ${VOLUMES_DRIVER}
 services:
