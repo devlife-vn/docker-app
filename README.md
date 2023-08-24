@@ -129,3 +129,9 @@ From the download location of the PYZ bundle (see step 2 above) run:
 
 > sudo ./aptsources-cleanup.pyz
 ~~~
+
+~~~
+dat mat khau cho user root trong docker:
+> cat /etc/shadow | grep root
+> passwd
+~~~
