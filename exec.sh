@@ -4,12 +4,9 @@ clear
 
 userName=$1
 if [ -z "$userName" ]; then
-    read -p "Bạn có muốn thay đổi user (bỏ trống để đăng nhập bằng www-data): " userNameEnter;
-    if [ -z "$userNameEnter" ]; then
-      userName="www-data"
-    else
-      userName=$userNameEnter
-    fi
+    userName="www-data"
+else
+    userName=$userName
 fi
 
 echo "name=^${PWD##*/}-php-fpm";
