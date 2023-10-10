@@ -23,6 +23,8 @@ if [ ! -z "$name" ]; then
         php artisan config:clear
         php artisan route:clear
         php artisan route:cache
+        php artisan view:clear
+        php artisan view:cache
         php artisan optimize
         composer dump-autoload
       done
