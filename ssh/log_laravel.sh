@@ -18,24 +18,22 @@ if [ ! -z "$name" ]; then
 
         if [ -f "$FILE" ]; then
             echo "*********************************************[ LOADING CONTENT FILE LOG CURRENT DATE IN FILE ---> ( $FILE ) ]";
-            # tail -f $FILE
-
-            tail -f -n 200 $FILE | grep -n '' | sed \
+            tail -f -n 1000 $FILE | grep -n '' | sed \
                     -e 's/\(.*INFO.*\)/\x1B[32m\1\x1B[39m/' \
                     -e 's/\(.*ERROR.*\)/\x1B[31m\1\x1B[39m/' \
                     -e 's/\(.*exception.*\)/\x1B[31m\1\x1B[39m/' \
-                    -e 's/\(.*stacktrace.*\)/\x1b[36m/'
+                    -e 's/\(.*stacktrace.*\)/\x1b[36m\1\x1B[39m/' \
+                    -e 's/\(.*vendor.*\)/\x1b[35m\1\x1B[39m/'
         else
             FILE="storage/logs/laravel.log";
             if [ -f "$FILE" ]; then
                 echo "*********************************************[ LOADING CONTENT FILE LOG CURRENT DATE IN FILE ---> ( $FILE ) ]";
-                # tail -f $FILE
-
-                tail -f -n 200 $FILE | grep -n '' | sed \
+                tail -f -n 1000 $FILE | grep -n '' | sed \
                         -e 's/\(.*INFO.*\)/\x1B[32m\1\x1B[39m/' \
                         -e 's/\(.*ERROR.*\)/\x1B[31m\1\x1B[39m/' \
                         -e 's/\(.*exception.*\)/\x1B[31m\1\x1B[39m/' \
-                        -e 's/\(.*stacktrace.*\)/\x1b[36m/'
+                        -e 's/\(.*stacktrace.*\)/\x1b[36m\1\x1B[39m/' \
+                        -e 's/\(.*vendor.*\)/\x1b[35m\1\x1B[39m/'
             else
                 echo "*********************************************[ $FILE ***** does not exist ]";
             fi
