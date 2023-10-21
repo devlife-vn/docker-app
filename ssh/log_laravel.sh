@@ -18,7 +18,7 @@ if [ ! -z "$name" ]; then
 
         if [ -f "$FILE" ]; then
             echo "*********************************************[ LOADING CONTENT FILE LOG CURRENT DATE IN FILE ---> ( $FILE ) ]";
-            tail -f -n 1000 $FILE | grep -n '' | sed \
+            tail -f -n 1000 $FILE | sed \
                     -e 's/\(.*INFO.*\)/\x1B[32m\1\x1B[39m/' \
                     -e 's/\(.*ERROR.*\)/\x1B[31m\1\x1B[39m/' \
                     -e 's/\(.*exception.*\)/\x1B[31m\1\x1B[39m/' \
@@ -28,7 +28,7 @@ if [ ! -z "$name" ]; then
             FILE="storage/logs/laravel.log";
             if [ -f "$FILE" ]; then
                 echo "*********************************************[ LOADING CONTENT FILE LOG CURRENT DATE IN FILE ---> ( $FILE ) ]";
-                tail -f -n 1000 $FILE | grep -n '' | sed \
+                tail -f -n 1000 $FILE | sed \
                         -e 's/\(.*INFO.*\)/\x1B[32m\1\x1B[39m/' \
                         -e 's/\(.*ERROR.*\)/\x1B[31m\1\x1B[39m/' \
                         -e 's/\(.*exception.*\)/\x1B[31m\1\x1B[39m/' \
