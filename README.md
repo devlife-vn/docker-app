@@ -135,3 +135,8 @@ dat mat khau cho user root trong docker:
 > cat /etc/shadow | grep root
 > passwd
 ~~~
+
+~~~
+chạy crond job tron dự án hiện tại:
+> while true; do php artisan schedule:run; sleep 5; done
+~~~
