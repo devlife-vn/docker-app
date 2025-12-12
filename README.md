@@ -1,53 +1,70 @@
-# copy env-local ---> .env
+# Development Environment Setup
+
+Tài liệu hướng dẫn cài đặt và cấu hình môi trường phát triển sử dụng Docker, SSL cho domain local, và các lệnh thường dùng.
+
+## Mục lục
+
+- [Khởi tạo môi trường](#khởi-tạo-môi-trường)
+- [Tạo SSL cho Domain Local](#tạo-ssl-cho-domain-local)
+- [Tạo Client Certificates](#tạo-client-certificates)
+- [Docker Commands](#docker-commands)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Khởi tạo môi trường
+
+### 1. Copy file cấu hình môi trường
+
+```bash
 cp env-local .env
+```
 
-# change folder source code in env
+### 2. Cấu hình đường dẫn source code
+
+Chỉnh sửa file `.env` và cập nhật:
+
+```bash
 APP_CODE_PATH_HOST=...
+```
 
-# start build container by sh file
+### 3. Khởi động Docker containers
+
+```bash
 ./start.sh
+```
 
+---
 
-# Generate CA key and cert:
-openssl genrsa -out rootCA.key 2048
-openssl req -x509 -new -key rootCA.key -days 3650 -out rootCA.pem \
--subj '/C=AA/ST=AA/L=AA/O=AA Ltd/OU=AA/CN=AA/emailAddress=aa@aa.com'
+## Tạo SSL cho Domain Local
 
-# Generate client key and csr:
-openssl genrsa -out client1.key 2048
-openssl req -new -key client1.key -out client1.csr \
--subj '/C=BB/ST=BB/L=BB/O=BB Ltd/OU=BB/CN=BB/emailAddress=bb@bb.com'
+### Bước 1: Chạy script tạo SSL
 
-# Generate client cert signed with CA cert:
-openssl x509 -req -days 365 -CA rootCA.pem -CAkey rootCA.key \
--CAcreateserial -CAserial serial -in client1.csr -out client1.pem
-Of course you can set your config file to use right CA files and use the 'openssl ca' tool after that.
+Script `ssl.sh` trong Docker sẽ tự động tạo chứng chỉ SSL cho domain local:
 
-# You can verify your certificate like this:
-openssl verify -verbose -CAfile rootCA.pem client1.pem
+```bash
+./ssl.sh domain-local-name.local
+```
 
+### Bước 2: Cơ chế hoạt động
 
-# Command common
-## Command copy file between docker container and local machine
-`Nếu như muốn copy file từ trong container docker ra ngoài máy thật thì đường dẫn của file trong container docker sẻ để phía trước, đường dẫn tới máy thật phía sau. Và nếu như muốn copy ngược lại thì đổi vị trí của 2 đường dẫn`
-> docker cp CONTAINER_NAME:/`đường_dẫn_file_trong_container`**[_khoảng trắng_]**`đường_dẫn_lưu_file_trong_máy_thật`
+Script thực hiện 2 công việc chính:
 
+1. **Tạo Root CA** (lần đầu tiên):
+   - Các file được tạo trong thư mục `/ca-certificates/`
+   - Password phrase mặc định: `quandn`
+   - ⚠️ **LƯU Ý**: Nhớ password này để tạo certificates cho các domain khác
+   - Files được tạo: `rootCA.key`, `rootCA.pem`, `rootCA.srl`
 
-# Cách chạy file tạo SSL cho doamin local
-`Trong docker có tạo 1 file tên là ssl.sh, file này có nhiệm vụ tạo ra các chứng chỉ ssl cho domain local nam đang muốn tạo`
-`B1: chạy script sh: `
-> Command:
-~~~
-./ssl/sh domain-local-name.local
-~~~
+2. **Tạo Certificate cho domain**:
+   - Sử dụng Root CA đã tạo để ký certificate
+   - Cần nhập password của Root CA (quandn)
 
-## Mô tả:
-- Trong file này sẽ thực hiện 2 công việc chính, 1 là tạo ra root CA file này sẽ được tạo trong thư mục `/ca-certificates/`, CHÚ Ý: trong lần tạo rootCA đầu tiên password phrase (quandn) của bước này là phải nhớ để sau này tạo cho các domain khác, nó sẽ tạo ra 3 file **.key**, **.pem** và **.srl**
-- Nếu như rootCA đã có rồi hoặc sau khi tạo rootCA sẽ tạo certificates cho `domain-local-name`, cuối cùng sẽ cần nhập mật khẩu của rootCA (quandn) trong lần tạo trên để có thể tạo được
+### Bước 3: Cấu hình Nginx
 
-`B2: Thêm cấu hình trong file nginx.config cho domain name`
-> Example file nginx config:
-~~~
+Tạo/cập nhật file cấu hình Nginx cho domain:
+
+```nginx
 server {
     listen 80;
     server_name devlife.local;
@@ -62,9 +79,9 @@ server {
     server_name devlife.local;
     root /var/www/devlife/dist;
     index index.php index.html index.htm;
-    
+
     location / {
-         try_files $uri $uri/ /index.php$is_args$args;
+        try_files $uri $uri/ /index.php$is_args$args;
     }
 
     location ~ \.php$ {
@@ -74,7 +91,6 @@ server {
         fastcgi_buffers 16 16k;
         fastcgi_buffer_size 32k;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        #fixes timeouts
         fastcgi_read_timeout 600;
         include fastcgi_params;
     }
@@ -91,52 +107,141 @@ server {
     error_log /var/log/nginx/devlife-error.log;
     access_log /var/log/nginx/devlife-access.log;
 }
+```
 
-~~~
+### Bước 4: Import Root CA vào trình duyệt
 
-`B3: Import rootCA.pem vào trình duyệt`
-> Example file nginx config:
-~~~
-Trong trình duyệt tìm mục certificates và import rootCA.pem vào trong trình duyệt, tùy máy tính sẽ có cách import khác nhau
-~~~
+1. Mở trình duyệt và tìm mục **Certificates** (hoặc **Chứng chỉ**)
+2. Import file `rootCA.pem` vào danh sách Trusted Root Certification Authorities
+3. Khởi động lại trình duyệt
 
-# Nếu install source vue mà lỗi create vue project
-> vue config -s packageManager npm
-![Alt text](https://lh3.googleusercontent.com/u/0/drive-viewer/AFGJ81oLTP7dp44SDDG_sdlT-RbuGH2CL6andk5j_YsxP-FtsePgWhPKS8XmM6eqtzEZtlPSaL28y9VGTu32-XaO5DQz9ZNI=w3024-h1730)
+> **Lưu ý**: Cách import có thể khác nhau tùy theo hệ điều hành và trình duyệt
 
+---
 
-// loi hay mac phai khi dung git
+## Tạo Client Certificates
 
-Git Push Error: insufficient permission for adding an object to repository database
+### 1. Tạo Root CA key và certificate
 
-~~~
-> cd project root./.git/
+```bash
+openssl genrsa -out rootCA.key 2048
+openssl req -x509 -new -key rootCA.key -days 3650 -out rootCA.pem \
+  -subj '/C=AA/ST=AA/L=AA/O=AA Ltd/OU=AA/CN=AA/emailAddress=aa@aa.com'
+```
+
+### 2. Tạo Client key và CSR
+
+```bash
+openssl genrsa -out client1.key 2048
+openssl req -new -key client1.key -out client1.csr \
+  -subj '/C=BB/ST=BB/L=BB/O=BB Ltd/OU=BB/CN=BB/emailAddress=bb@bb.com'
+```
+
+### 3. Ký Client certificate với Root CA
+
+```bash
+openssl x509 -req -days 365 -CA rootCA.pem -CAkey rootCA.key \
+  -CAcreateserial -CAserial serial -in client1.csr -out client1.pem
+```
+
+### 4. Xác thực certificate
+
+```bash
+openssl verify -verbose -CAfile rootCA.pem client1.pem
+```
+
+> **Gợi ý**: Bạn có thể cấu hình file config và sử dụng `openssl ca` để quản lý certificates tốt hơn
+
+---
+
+## Docker Commands
+
+### Copy file giữa Docker container và máy local
+
+**Cú pháp**:
+
+```bash
+docker cp CONTAINER_NAME:/path/to/file/in/container /path/to/destination/on/host
+```
+
+**Lưu ý**:
+- Copy từ container ra host: đường dẫn container trước, đường dẫn host sau
+- Copy từ host vào container: đảo ngược thứ tự đường dẫn
+
+**Ví dụ**:
+
+```bash
+# Copy từ container ra host
+docker cp my_container:/var/www/html/config.php ./config.php
+
+# Copy từ host vào container
+docker cp ./config.php my_container:/var/www/html/config.php
+```
+
+### Đặt password cho user root trong Docker
+
+```bash
+cat /etc/shadow | grep root
+passwd
+```
+
+### Chạy Laravel Scheduler trong Docker
+
+```bash
+while true; do php artisan schedule:run; sleep 5; done
+```
+
+---
+
+## Troubleshooting
+
+### 1. Lỗi khi tạo Vue project
+
+**Triệu chứng**: Không thể tạo project Vue mới
+
+**Giải pháp**:
+
+```bash
+vue config -s packageManager npm
+```
+
+### 2. Git Push Error: Insufficient permission
+
+**Lỗi**: `insufficient permission for adding an object to repository database`
+
+**Giải pháp**:
+
+```bash
+cd /path/to/project/.git/
 sudo chown -R "${USER:-$(id -un)}" .
-~~~
+```
 
-// How can I fix apt error "W: Target Packages ... is configured multiple times"?
+### 3. Apt Error: Target Packages configured multiple times
 
-~~~
-Install the prerequisites:
+**Lỗi**: `W: Target Packages ... is configured multiple times`
 
-> sudo apt install python3-apt
-file: other_files/aptsources-cleanup.pyz
+**Giải pháp**:
 
-> chmod a+x aptsources-cleanup.pyz
+1. Cài đặt prerequisites:
 
-Usage:
-From the download location of the PYZ bundle (see step 2 above) run:
+```bash
+sudo apt install python3-apt
+```
 
-> sudo ./aptsources-cleanup.pyz
-~~~
+2. Tải và cấp quyền thực thi cho script cleanup:
 
-~~~
-dat mat khau cho user root trong docker:
-> cat /etc/shadow | grep root
-> passwd
-~~~
+```bash
+chmod a+x other_files/aptsources-cleanup.pyz
+```
 
-~~~
-chạy crond job tron dự án hiện tại:
-> while true; do php artisan schedule:run; sleep 5; done
-~~~
+3. Chạy script:
+
+```bash
+sudo ./other_files/aptsources-cleanup.pyz
+```
+
+---
+
+## Liên hệ
+
+Nếu có vấn đề hoặc câu hỏi, vui lòng tạo issue hoặc liên hệ team phát triển.
