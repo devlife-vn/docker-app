@@ -89,3 +89,7 @@ containers/nginx/sites/api_nginx.conf
 
 .tmp.driveupload
 .tmp.drivedownload
+
+# Ignore database dump files
+containers/mysql/data/*.sql
+containers/mysql/data/db.sql
