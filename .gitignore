@@ -86,3 +86,6 @@ tanthanhdat.sh
 containers/nginx/sites/sgtimes.conf
 containers/nginx/sites/nginx.conf
 containers/nginx/sites/api_nginx.conf
+
+.tmp.driveupload
+.tmp.drivedownload
