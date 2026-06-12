@@ -5,14 +5,16 @@
 # Hiển thị header
 echo "\033[1;34m=== Mở các ứng dụng ===\033[0m"
 
+sh /Users/quandn/quandn/quit_app.sh
+
 # Danh sách các ứng dụng cần mở
 apps=(
     "Zalo"
     "Discord"
-    # "Telegram"
+    "Telegram"
     "Bitwarden"
     "Google Chrome"
-    "Visual Studio Code|code"
+    # "Visual Studio Code"
     # "Cloudflare WARP"
 )
 

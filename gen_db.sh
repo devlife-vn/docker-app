@@ -21,7 +21,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Generate timestamp once at script start
-CURRENT_DATE=$(date +%d_%m_%Y)
+CURRENT_DATE=$(date +%Y_%m_%d)
 TIME_STAMP=$(date +%H%M%S)
 
 # ============ Path Configuration ============
@@ -36,7 +36,8 @@ ACTIVE_LOG_TABLE="active_logs"
 ACTIVE_LOG_NAME="${CURRENT_DATE}_${ACTIVE_LOG_TABLE}"
 
 # ============ File Paths ============
-SQL_FILE_PATH="$DOWNLOADS_DIR/$CURRENT_DATE.sql"
+GZ_FILE_PATH=""       # Sẽ được tìm tự động bởi find_sql_backup_file()
+SQL_FILE_PATH=""      # Sẽ được set sau khi giải nén file .gz
 SQL_MASK_FILE_PATH="$SCRIPTS_DIR/mask.sql"
 ACTIVE_LOG_SQL_PATH="$DOWNLOADS_DIR/$ACTIVE_LOG_NAME.sql"
 DATABASE_EXPORT_PATH="$DOWNLOADS_DIR/$DATABASE_EXPORT_NAME"
@@ -56,6 +57,14 @@ TEMP_FILES=()  # Array to track temporary files for cleanup
 ################################################################################
 # SECTION 2: UTILITY FUNCTIONS
 ################################################################################
+
+printCurrentPath() {
+    echo "Script location: $(realpath "$0")"
+}
+
+alert_success() {
+    osascript -e 'display notification "Database generation completed successfully!" with title "Success" sound name "Glass"'
+}
 
 # ============ Logging Functions ============
 # Ghi log với timestamp, giúp tracking toàn bộ quá trình thực thi
@@ -111,24 +120,27 @@ measure_time() {
 # Cleanup tất cả file tạm thời khi script kết thúc (success hoặc error)
 cleanup() {
     local exit_code=$?
-    
+
     if [ $exit_code -ne 0 ]; then
         log_error "Script failed. Performing cleanup..."
     else
         log "Performing cleanup..."
+        # Xóa log file khi thành công (không cần giữ lại)
+        rm -f "$DOWNLOADS_DIR"/gen_db_*.log
+        log_success "Log files removed (successful run)"
     fi
-    
+
     # Xóa active_logs.sql nếu vẫn còn
     cleanup_active_logs_sql
-    
+
     # Xóa các file tạm thời trong TEMP_FILES array
-    for temp_file in "${TEMP_FILES[@]}"; do
+    for temp_file in "${TEMP_FILES[@]:-}"; do
         if [ -f "$temp_file" ]; then
             rm -f "$temp_file"
             log "Removed temporary file: $temp_file"
         fi
     done
-    
+
     exit $exit_code
 }
 
@@ -151,6 +163,82 @@ cleanup_active_logs_sql() {
 # SECTION 3: PREREQUISITE CHECKS
 ################################################################################
 
+# ============ 3.0: Find & Extract SQL Backup File ============
+# Tự động tìm file backup-daily-*.gz được tải về trong ngày hôm nay
+# Format tên file: backup-daily-YYYYMMDDHHMMSS-<random>.gz
+find_sql_backup_file() {
+    log "Searching for today's SQL backup file in $DOWNLOADS_DIR..."
+
+    local today=$(date +%Y%m%d)
+    local found_file
+
+    # Dùng -newer so sánh với mốc đầu ngày hôm nay (tương thích macOS BSD find)
+    # Tạo file tạm làm mốc thời gian 00:00:00 hôm nay
+    local today_marker
+    today_marker=$(mktemp)
+    touch -t "${today}0000" "$today_marker"
+
+    local all_files
+    all_files=$(find "$DOWNLOADS_DIR" \
+        -maxdepth 1 \
+        -name "backup-daily-*.gz" \
+        -newer "$today_marker" \
+        | sort)  # sort alphabet = sort theo timestamp vì format tên cố định
+
+    rm -f "$today_marker"
+
+    local file_count
+    file_count=$(echo "$all_files" | grep -c . || true)
+
+    if [ "$file_count" -gt 1 ]; then
+        log_warning "Found $file_count backup files today, picking the latest:"
+        echo "$all_files" | while read -r f; do log "  - $(basename "$f")"; done
+    fi
+
+    found_file=$(echo "$all_files" | tail -1)
+
+    if [ -z "$found_file" ]; then
+        log_error "No backup-daily-*.gz file found in $DOWNLOADS_DIR for today ($today)"
+        log_error "Expected file pattern: backup-daily-${today}HHMMSS-<random>.gz"
+        return 1
+    fi
+
+    # Validate tên file đúng pattern: backup-daily-YYYYMMDDHHMMSS-<random>.gz
+    local filename
+    filename=$(basename "$found_file")
+    if [[ ! "$filename" =~ ^backup-daily-[0-9]{14}-[A-Za-z0-9]+\.gz$ ]]; then
+        log_error "File name does not match expected pattern: $filename"
+        log_error "Expected: backup-daily-YYYYMMDDHHMMSS-<random>.gz"
+        return 1
+    fi
+
+    GZ_FILE_PATH="$found_file"
+    log_success "Found backup file: $filename"
+
+    # Validate file không rỗng
+    if [ ! -s "$GZ_FILE_PATH" ]; then
+        log_error "Backup file is empty: $filename"
+        return 1
+    fi
+
+    # Validate file là gzip hợp lệ
+    if ! gunzip -t "$GZ_FILE_PATH" 2>/dev/null; then
+        log_error "File is not a valid gzip archive: $filename"
+        return 1
+    fi
+
+    log_success "Backup file integrity verified"
+
+    # Giải nén .gz thành .sql trong Downloads
+    SQL_FILE_PATH="${GZ_FILE_PATH%.gz}.sql"
+    log "Extracting to: $(basename "$SQL_FILE_PATH")..."
+
+    gunzip -c "$GZ_FILE_PATH" > "$SQL_FILE_PATH" \
+        || { log_error "Failed to extract $GZ_FILE_PATH"; return 1; }
+
+    log_success "Extracted: $(basename "$SQL_FILE_PATH")"
+}
+
 # ============ 3.1: Verify MySQL Connection ============
 # Kiểm tra kết nối MySQL trước khi chạy để tránh lãng phí thời gian
 verify_mysql_connection() {
@@ -171,18 +259,17 @@ verify_mysql_connection() {
 # Đảm bảo tất cả file cần thiết tồn tại trước khi bắt đầu
 check_required_files() {
     log "Checking required files..."
-    
+
     local files_to_check=(
-        "$SQL_FILE_PATH:SQL import file"
         "$SQL_MASK_FILE_PATH:SQL mask file"
         "$ENV_FILE:Laravel .env file"
     )
-    
+
     local all_exist=true
     for file_check in "${files_to_check[@]}"; do
         local file_path="${file_check%%:*}"
         local file_desc="${file_check##*:}"
-        
+
         if [ ! -f "$file_path" ]; then
             log_error "Missing: $file_desc - $file_path"
             all_exist=false
@@ -190,8 +277,23 @@ check_required_files() {
             log "Found: $file_desc"
         fi
     done
-    
+
     [ "$all_exist" = true ] || return 1
+
+    # Validate nội dung file SQL đã giải nén
+    log "Validating SQL file content..."
+
+    if [ ! -s "$SQL_FILE_PATH" ]; then
+        log_error "SQL file is empty: $SQL_FILE_PATH"
+        return 1
+    fi
+
+    if ! grep -q -m1 "^CREATE\|^INSERT\|^DROP\|^ALTER" "$SQL_FILE_PATH"; then
+        log_error "File does not appear to be a valid SQL dump: $SQL_FILE_PATH"
+        return 1
+    fi
+
+    log_success "SQL file content looks valid"
 }
 
 # ============ 3.3: Check Directory Access ============
@@ -248,12 +350,13 @@ run_prerequisite_checks() {
     log "=========================================="
     log "Running prerequisite checks..."
     log "=========================================="
-    
+
     verify_mysql_connection || return 1
+    find_sql_backup_file || return 1   # Tìm & giải nén .gz -> set SQL_FILE_PATH
     check_required_files || return 1
     check_directory_access || return 1
     check_disk_space || return 1
-    
+
     log_success "All prerequisite checks passed!"
 }
 
@@ -509,6 +612,42 @@ update_env_file() {
     log_success ".env file updated successfully"
 }
 
+remove_other_file() {
+    # Xóa file .sql đã giải nén (chỉ xóa khi thành công, giữ lại khi lỗi để debug)
+    if [ -f "$SQL_FILE_PATH" ]; then
+        rm -f "$SQL_FILE_PATH"
+        log_success "Removed extracted SQL file: $(basename "$SQL_FILE_PATH")"
+    fi
+
+    # Xóa tất cả file backup-daily-*.gz (kể cả file cũ các ngày trước)
+    local gz_count=0
+    for gz_file in "$DOWNLOADS_DIR"/backup-daily-*.gz; do
+        if [ -f "$gz_file" ]; then
+            rm -f "$gz_file"
+            log "Removed: $(basename "$gz_file")"
+            ((gz_count++))
+        fi
+    done
+    [ $gz_count -gt 0 ] && log_success "Removed $gz_count backup-daily-*.gz file(s)"
+
+    rm -f "$DOWNLOADS_DIR/$ACTIVE_LOG_NAME.zip"
+
+    # Xóa các file database zip cũ, chỉ giữ lại file vừa gen hôm nay
+    local zip_count=0
+    for zip_file in "$DOWNLOADS_DIR"/*_database.zip; do
+        if [ -f "$zip_file" ] && [ "$zip_file" != "$FINAL_ZIP_PATH" ]; then
+            rm -f "$zip_file"
+            log "Removed old database zip: $(basename "$zip_file")"
+            ((zip_count++))
+        fi
+    done
+    [ $zip_count -gt 0 ] && log_success "Removed $zip_count old database zip file(s)"
+
+    # Chạy thành công -> xóa tất cả log (kể cả log của các lần chạy cũ)
+    rm -f "$DOWNLOADS_DIR"/gen_db_*.log
+    log_success "All log files removed (successful run)"
+}
+
 ################################################################################
 # SECTION 10: LARAVEL OPTIMIZATION
 ################################################################################
@@ -580,7 +719,8 @@ main() {
     log "=========================================="
     log "Starting Database Generation Script"
     log "=========================================="
-    
+    printCurrentPath
+
     # Step 1: Kiểm tra prerequisites
     run_prerequisite_checks || exit 1
     
@@ -614,20 +754,23 @@ main() {
     measure_time "Export Database" "export_database" || exit 1
     measure_time "Compress Database" "compress_database" || exit 1
     
-    # Step 7: Cập nhật environment
-    log "=========================================="
-    log "PHASE 5: Environment Configuration"
-    log "=========================================="
-    measure_time "Update .env File" "update_env_file" || exit 1
+    # # Step 7: Cập nhật environment
+    # log "=========================================="
+    # log "PHASE 5: Environment Configuration"
+    # log "=========================================="
+    # measure_time "Update .env File" "update_env_file" || exit 1
     
-    # Step 8: Optimize Laravel
-    log "=========================================="
-    log "PHASE 6: Laravel Optimization"
-    log "=========================================="
-    measure_time "Optimize Laravel" "optimize_laravel" || exit 1
+    # # Step 8: Optimize Laravel
+    # log "=========================================="
+    # log "PHASE 6: Laravel Optimization"
+    # log "=========================================="
+    # measure_time "Optimize Laravel" "optimize_laravel" || exit 1
     
     # Step 9: Print summary
     print_completion_summary
+
+    # Step 10: Gửi thông báo macOS
+    alert_success
 }
 
 ################################################################################

@@ -59,7 +59,7 @@ set customers.address = CONCAT(
             'Ngô Quyền, Phường Máy Chai, Quận Ngô Quyền, Hải Phòng'
         ));
 update customers
-set customers.passport_code = SUBSTRING(MD5(RAND()), 1, 9);
+set customers.passport_code = SUBSTRING(SHA2(RAND(), 256), 1, 9);
 UPDATE customers
 SET customers.passport_issued_date =
         CASE
@@ -140,7 +140,7 @@ SET contract_customers.birthday = DATE_ADD(
                                   )
 WHERE contract_customers.birthday IS NOT NULL;
 update contract_customers
-set contract_customers.passport_code = SUBSTRING(MD5(RAND()), 1, 9);
+set contract_customers.passport_code = SUBSTRING(SHA2(RAND(), 256), 1, 9);
 UPDATE contract_customers
 SET contract_customers.passport_expiration = DATE_ADD(
         DATE_ADD(
