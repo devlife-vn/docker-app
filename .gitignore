@@ -93,3 +93,4 @@ containers/nginx/sites/api_nginx.conf
 # Ignore database dump files
 containers/mysql/data/*.sql
 containers/mysql/data/db.sql
+.vscode/settings.json
