@@ -32,64 +32,56 @@ DB_NAME="db_tic"           # Tên database (để trống nếu file SQL đã c�
 DB_CHARSET="utf8mb4"       # Charset mặc định
 
 # ============================================
-# XỬ LÝ THAM SỐ VÀ KIỂM TRA
+# XỬ LÝ THAM SỐ BẮT BUỘC
 # ============================================
 
-# Lấy đường dẫn file (từ tham số hoặc hỏi user)
-if [ -z "$1" ]; then
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Nhập đường dẫn tới file SQL cần import:"
-    read -r FILE_PATH
+DB_NAME=""
+FILE_PATH=""
 
-    # Kiểm tra xem user có nhập gì không
-    if [ -z "$FILE_PATH" ]; then
-        echo "Lỗi: Đường dẫn file không được để trống"
-        exit 1
-    fi
+# Parse tất cả tham số
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --db=*)
+            DB_NAME="${1#--db=}"
+            shift
+            ;;
+        --file=*)
+            FILE_PATH="${1#--file=}"
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 --db=<database_name> --file=<sql_file>"
+            echo ""
+            echo "Options:"
+            echo "  --db=<name>     Database name to import (required)"
+            echo "  --file=<path>   SQL file path to import (required)"
+            echo "  -h, --help      Show this help message"
+            echo ""
+            echo "Example:"
+            echo "  $0 --db=db_tic --file=/path/to/backup.sql"
+            exit 0
+            ;;
+        *)
+            echo "Lỗi: Tham số không hợp lệ: $1"
+            echo ""
+            echo "Usage: $0 --db=<database_name> --file=<sql_file>"
+            exit 1
+            ;;
+    esac
+done
 
-    # Chế độ interactive: luôn hỏi database name
-    INTERACTIVE_MODE=true
-else
-    FILE_PATH="$1"
-    INTERACTIVE_MODE=false
-fi
-
-# Xử lý tham số thứ 2
-# --role: import vào database tic_role
-# Tham số khác: báo lỗi và dừng
-if [ ! -z "$2" ]; then
-    if [ "$2" = "--role" ]; then
-        DB_NAME="tic_role"
-    else
-        echo "Lỗi: Tham số thứ 2 không hợp lệ: $2"
-        echo "Chỉ hỗ trợ tham số: --role (import vào database tic_role)"
-        echo ""
-        echo "Cách sử dụng:"
-        echo "  $0 <file.sql>          # Import vào database mặc định (db_tic)"
-        echo "  $0 <file.sql> --role   # Import vào database tic_role"
-        exit 1
-    fi
-elif [ "$INTERACTIVE_MODE" = true ]; then
-    # Chế độ interactive: hỏi user với option mặc định
-    echo ""
-    echo "Chọn database để import:"
-    echo "  1. Sử dụng database mặc định: $DB_NAME"
-    echo "  2. Nhập tên database khác"
-    echo ""
-    read -p "Lựa chọn của bạn (1/2, mặc định=1): " choice
-
-    if [ "$choice" = "2" ]; then
-        read -p "Nhập tên database mới: " INPUT_DB_NAME
-        if [ ! -z "$INPUT_DB_NAME" ]; then
-            DB_NAME="$INPUT_DB_NAME"
-        fi
-    fi
-    # Nếu choice = 1 hoặc Enter, giữ nguyên DB_NAME mặc định
-fi
-
-# Đảm bảo DB_NAME không rỗng
+# Kiểm tra tham số bắt buộc
 if [ -z "$DB_NAME" ]; then
-    echo "Lỗi: Tên database không hợp lệ"
+    echo "Lỗi: Tham số --db là bắt buộc"
+    echo ""
+    echo "Usage: $0 --db=<database_name> --file=<sql_file>"
+    exit 1
+fi
+
+if [ -z "$FILE_PATH" ]; then
+    echo "Lỗi: Tham số --file là bắt buộc"
+    echo ""
+    echo "Usage: $0 --db=<database_name> --file=<sql_file>"
     exit 1
 fi
 
@@ -147,12 +139,13 @@ fi
 # ============================================
 
 echo "============================================"
-echo "Thông tin kết nối:"
-echo "  Host: $DB_HOST"
-echo "  Port: $DB_PORT"
-echo "  User: $DB_USER"
+echo "THÔNG TIN IMPORT"
+echo "============================================"
 echo "  Database: $DB_NAME"
-echo "  File: $FILE_PATH"
+echo "  File SQL: $FILE_PATH"
+echo "  Host:     $DB_HOST"
+echo "  Port:     $DB_PORT"
+echo "  User:     $DB_USER"
 echo "============================================"
 
 # Câu lệnh MySQL cơ bản (không chỉ định database)
@@ -218,20 +211,9 @@ if [ "$CLEANUP_REQUIRED" = true ]; then
     fi
 fi
 
-if ([ "$2" = "--role" ]); then
-    cd /Users/quandn/quandn/web/tic;
-
-    # đổi DATABASE_NAME thành tic_role trong .env
-    sed -i '' "s/DB_DATABASE=.*/DB_DATABASE=tic_role/" /Users/quandn/quandn/web/tic/.env
-
-    # chạy command để lấy ra bảng permissions từ tic_role và import vào bảng permissions của db_tic
-    php artisan migrate:fresh --seed && mysql -u root -proot -e "SELECT * FROM permissions" tic_role | sed 's/\t/,/g' > ~/Downloads/permission_$(date +%d%m%Y_%H%M%S).csv && open ~/Downloads/
-
-    # đổi lại DATABASE_NAME thành db_tic trong .env
-    sed -i '' "s/DB_DATABASE=.*/DB_DATABASE=db_tic/" /Users/quandn/quandn/web/tic/.env
-
-    # optimize lại
-    php artisan optimize:clear
+if [ "$DB_NAME" = "db_role" ]; then
+    # chạy command để lấy ra bảng permissions từ db_role và export vào CSV
+    mysql -u root -proot -e "SELECT * FROM permissions" db_role | sed 's/\t/,/g' > ~/Downloads/permission_$(date +%d%m%Y_%H%M%S).csv && open ~/Downloads/
 fi
 
 osascript -e 'display notification "Đã import database thành công" with title "Terminal"'

@@ -766,10 +766,18 @@ main() {
     # log "=========================================="
     # measure_time "Optimize Laravel" "optimize_laravel" || exit 1
     
-    # Step 9: Print summary
+    # Step 9: Cleanup các file không cần thiết
+    log "=========================================="
+    log "PHASE 5: Cleanup Temporary Files"
+    log "=========================================="
+    remove_other_file || log_warning "Cleanup encountered an issue"
+
+    bash ~/quandn/clean_download_folder.sh;
+
+    # Step 10: Print summary
     print_completion_summary
 
-    # Step 10: Gửi thông báo macOS
+    # Step 11: Gửi thông báo macOS
     alert_success
 }
 

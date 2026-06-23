@@ -14,7 +14,7 @@ if [ -f "${EXPORT_PATH}" ]; then
 fi
 
 echo "Exporting permissions to ${EXPORT_PATH}..."
-mysqldump -u root -psecret tic_role permissions roles_permissions > "${EXPORT_PATH}"
+mysqldump -u root -proot db_role permissions roles_permissions > "${EXPORT_PATH}"
 
 # Check if export was successful
 if [ -f "${EXPORT_PATH}" ] && [ -s "${EXPORT_PATH}" ]; then
