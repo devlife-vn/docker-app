@@ -26,27 +26,57 @@ DB_NAME="db_tic"                 # Tên database (để trống nếu file SQL �
 DB_CHARSET="utf8mb4"       # Charset mặc định
 
 # ============================================
-# XỬ LÝ THAM SỐ VÀ KIỂM TRA
+# XỬ LÝ THAM SỐ BẮT BUỘC
 # ============================================
 
-# Lấy đường dẫn file (từ tham số hoặc hỏi user)
-if [ -z "$1" ]; then
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Nhập đường dẫn tới file SQL cần import:"
-    read -r FILE_PATH
+DB_NAME=""
+FILE_PATH=""
 
-    # Kiểm tra xem user có nhập gì không
-    if [ -z "$FILE_PATH" ]; then
-        echo "Lỗi: Đường dẫn file không được để trống"
-        exit 1
-    fi
-else
-    FILE_PATH="$1"
+# Parse tất cả tham số
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --db=*)
+            DB_NAME="${1#--db=}"
+            shift
+            ;;
+        --file=*)
+            FILE_PATH="${1#--file=}"
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 --db=<database_name> --file=<sql_file>"
+            echo ""
+            echo "Options:"
+            echo "  --db=<name>     Database name to import (required)"
+            echo "  --file=<path>   SQL file path to import (required)"
+            echo "  -h, --help      Show this help message"
+            echo ""
+            echo "Example:"
+            echo "  $0 --db=db_tic --file=/path/to/backup.sql"
+            exit 0
+            ;;
+        *)
+            echo "Lỗi: Tham số không hợp lệ: $1"
+            echo ""
+            echo "Usage: $0 --db=<database_name> --file=<sql_file>"
+            exit 1
+            ;;
+    esac
+done
+
+# Kiểm tra tham số bắt buộc
+if [ -z "$DB_NAME" ]; then
+    echo "Lỗi: Tham số --db là bắt buộc"
+    echo ""
+    echo "Usage: $0 --db=<database_name> --file=<sql_file>"
+    exit 1
 fi
 
-# Cho phép override DB_NAME từ tham số thứ 2
-if [ ! -z "$2" ]; then
-    DB_NAME="$2"
+if [ -z "$FILE_PATH" ]; then
+    echo "Lỗi: Tham số --file là bắt buộc"
+    echo ""
+    echo "Usage: $0 --db=<database_name> --file=<sql_file>"
+    exit 1
 fi
 
 # Kiểm tra file có tồn tại không
