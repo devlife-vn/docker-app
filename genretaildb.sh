@@ -44,7 +44,7 @@ ENV_FILE="$RETAIL_WEB_DIR/.env"
 MYSQL_USER="root"
 MYSQL_PASS="root"
 MYSQL_LOGIN="mysql -u $MYSQL_USER -p$MYSQL_PASS --batch --silent"
-MYSQL_DUMP="mysqldump -u $MYSQL_USER -p$MYSQL_PASS"
+MYSQL_DUMP="mysqldump -u $MYSQL_USER -p$MYSQL_PASS --set-gtid-purged=OFF --single-transaction"
 
 # ============ Logging Configuration ============
 LOG_FILE="$DOWNLOADS_DIR/genretaildb_${CURRENT_DATE}_${TIME_STAMP}.log"
@@ -361,7 +361,7 @@ validate_import() {
 backup_active_logs() {
     log "Exporting active_logs table..."
 
-    $MYSQL_DUMP "$DATABASE_IMPORT_NAME" "$ACTIVE_LOG_TABLE" > "$ACTIVE_LOG_SQL_PATH" \
+    $MYSQL_DUMP "$DATABASE_IMPORT_NAME" "$ACTIVE_LOG_TABLE" > "$ACTIVE_LOG_SQL_PATH" 2>/dev/null \
         || { log_error "Failed to dump active_logs"; return 1; }
 
     log_success "Active logs exported: $ACTIVE_LOG_SQL_PATH"
