@@ -138,6 +138,21 @@ log_warning() {
     echo -e "${YELLOW}[WARNING]${NC} [${timestamp}] ${message}" | tee -a "$LOG_FILE"
 }
 
+move_to_trash() {
+    local path="$1"
+
+    if [ ! -e "$path" ]; then
+        log_warning "File already gone: $path"
+        return 0
+    fi
+
+    local trash_path="$HOME/.Trash/$(basename "$path")"
+    if ! mv -f "$path" "$trash_path"; then
+        log_error "Failed to move to Trash: $path"
+        return 1
+    fi
+}
+
 # ============ Error Handling & Cleanup ============
 cleanup() {
     local exit_code=$?
@@ -238,8 +253,8 @@ delete_directories() {
         local count=0
         while IFS= read -r -d '' dir; do
             if [ -d "$dir" ]; then
-                log "Removing directory: $(basename "$dir")"
-                rm -rf "$dir"
+                log "Moving directory to Trash: $(basename "$dir")"
+                move_to_trash "$dir" || return 1
                 ((count++))
                 ((DIRS_DELETED++))
             fi
@@ -261,8 +276,11 @@ delete_files() {
         local count=0
         while IFS= read -r -d '' file; do
             if [ -f "$file" ]; then
-                log "Removing file: $(basename "$file")"
-                rm -f "$file"
+                if [ "$file" = "$LOG_FILE" ]; then
+                    continue
+                fi
+                log "Moving file to Trash: $(basename "$file")"
+                move_to_trash "$file" || return 1
                 ((count++))
                 ((FILES_DELETED++))
             fi

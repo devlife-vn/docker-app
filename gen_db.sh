@@ -31,24 +31,17 @@ TIC_WEB_DIR="/Users/quandn/quandn/web/tic"
 
 # ============ Database Configuration ============
 DATABASE_IMPORT_NAME="db_tic"
-DATABASE_EXPORT_NAME="${CURRENT_DATE}_database"
-ACTIVE_LOG_TABLE="active_logs"
-ACTIVE_LOG_NAME="${CURRENT_DATE}_${ACTIVE_LOG_TABLE}"
 
 # ============ File Paths ============
 GZ_FILE_PATH=""       # Sẽ được tìm tự động bởi find_sql_backup_file()
 SQL_FILE_PATH=""      # Sẽ được set sau khi giải nén file .gz
 SQL_MASK_FILE_PATH="$SCRIPTS_DIR/mask.sql"
-ACTIVE_LOG_SQL_PATH="$DOWNLOADS_DIR/$ACTIVE_LOG_NAME.sql"
-DATABASE_EXPORT_PATH="$DOWNLOADS_DIR/$DATABASE_EXPORT_NAME"
-FINAL_ZIP_PATH="${DATABASE_EXPORT_PATH}.zip"
 ENV_FILE="$TIC_WEB_DIR/.env"
 
 # ============ MySQL Configuration ============
 MYSQL_USER="root"
 MYSQL_PASS="root"
 MYSQL_LOGIN="mysql -u $MYSQL_USER -p$MYSQL_PASS --batch --silent"
-MYSQL_DUMP="mysqldump -u $MYSQL_USER -p$MYSQL_PASS --set-gtid-purged=OFF --single-transaction"
 
 # ============ Logging Configuration ============
 LOG_FILE="$DOWNLOADS_DIR/gen_db_${CURRENT_DATE}_${TIME_STAMP}.log"
@@ -95,6 +88,21 @@ log_warning() {
     echo -e "${YELLOW}[WARNING]${NC} [${timestamp}] ${message}" | tee -a "$LOG_FILE"
 }
 
+move_to_trash() {
+    local path="$1"
+
+    if [ ! -e "$path" ]; then
+        log_warning "File already gone: $path"
+        return 0
+    fi
+
+    local trash_path="$HOME/.Trash/$(basename "$path")"
+    if ! mv -f "$path" "$trash_path"; then
+        log_error "Failed to move to Trash: $path"
+        return 1
+    fi
+}
+
 # ============ Performance Tracking ============
 # Đo thời gian thực thi của từng command để phát hiện bottleneck
 measure_time() {
@@ -130,9 +138,6 @@ cleanup() {
         log_success "Log files removed (successful run)"
     fi
 
-    # Xóa active_logs.sql nếu vẫn còn
-    cleanup_active_logs_sql
-
     # Xóa các file tạm thời trong TEMP_FILES array
     for temp_file in "${TEMP_FILES[@]:-}"; do
         if [ -f "$temp_file" ]; then
@@ -149,15 +154,6 @@ trap cleanup EXIT
 
 # Trap ERR để log lỗi và exit
 trap 'log_error "Error at line $LINENO"; exit 1' ERR
-
-# ============ Specific Cleanup ============
-# Xóa file active_logs.sql sau khi backup (nếu vẫn còn)
-cleanup_active_logs_sql() {
-    if [ -f "$ACTIVE_LOG_SQL_PATH" ]; then
-        rm -f "$ACTIVE_LOG_SQL_PATH"
-        log "Cleaned up: $ACTIVE_LOG_SQL_PATH"
-    fi
-}
 
 ################################################################################
 # SECTION 3: PREREQUISITE CHECKS
@@ -237,6 +233,7 @@ find_sql_backup_file() {
         || { log_error "Failed to extract $GZ_FILE_PATH"; return 1; }
 
     log_success "Extracted: $(basename "$SQL_FILE_PATH")"
+
 }
 
 # ============ 3.1: Verify MySQL Connection ============
@@ -354,6 +351,16 @@ run_prerequisite_checks() {
     verify_mysql_connection || return 1
     find_sql_backup_file || return 1   # Tìm & giải nén .gz -> set SQL_FILE_PATH
     check_required_files || return 1
+
+    log "Appending SQL mask to the extracted dump..."
+    {
+        printf '\n\n-- Begin data masking --\n'
+        cat "$SQL_MASK_FILE_PATH"
+        printf '\n-- End data masking --\n'
+    } >> "$SQL_FILE_PATH" \
+        || { log_error "Failed to append SQL mask"; return 1; }
+    log_success "SQL dump and mask merged"
+
     check_directory_access || return 1
     check_disk_space || return 1
 
@@ -375,12 +382,9 @@ print_overview() {
     log "--- File Paths ---"
     log "SQL import: $SQL_FILE_PATH"
     log "SQL mask: $SQL_MASK_FILE_PATH"
-    log "Active logs export: $DOWNLOADS_DIR/$ACTIVE_LOG_NAME.zip"
-    log "Final database export: $FINAL_ZIP_PATH"
     log ""
     log "--- Database Info ---"
     log "Database name: $DATABASE_IMPORT_NAME"
-    log "Active logs table: $ACTIVE_LOG_TABLE"
     log ""
     log "--- Output Locations ---"
     log "Script log: $LOG_FILE"
@@ -450,137 +454,7 @@ validate_import() {
 }
 
 ################################################################################
-# SECTION 6: ACTIVE LOGS BACKUP & TRUNCATE (PARALLEL)
-################################################################################
-
-# ============ 6.1: Export Active Logs ============
-# Backup bảng active_logs trước khi xóa
-# Chạy background để tối ưu thời gian
-backup_active_logs() {
-    log "Exporting active_logs table..."
-    
-    # Dump bảng active_logs ra file SQL
-    $MYSQL_DUMP "$DATABASE_IMPORT_NAME" "$ACTIVE_LOG_TABLE" > "$ACTIVE_LOG_SQL_PATH" 2>/dev/null \
-        || { log_error "Failed to dump active_logs"; return 1; }
-    
-    log_success "Active logs exported: $ACTIVE_LOG_SQL_PATH"
-}
-
-# ============ 6.2: Compress Active Logs ============
-# Nén file active logs để tiết kiệm dung lượng
-compress_active_logs() {
-    log "Compressing active_logs..."
-    
-    zip -j -q "$DOWNLOADS_DIR/$ACTIVE_LOG_NAME.zip" "$ACTIVE_LOG_SQL_PATH" \
-        || { log_error "Failed to compress active_logs"; return 1; }
-    
-    log_success "Active logs compressed: $DOWNLOADS_DIR/$ACTIVE_LOG_NAME.zip"
-}
-
-# ============ 6.3: Truncate Active Logs ============
-# Xóa dữ liệu cũ (không xóa structure)
-# Dùng TRUNCATE (nhanh hơn DELETE) vì không cần log từng row
-truncate_active_logs() {
-    log "Truncating active_logs table..."
-    
-    $MYSQL_LOGIN -e "USE $DATABASE_IMPORT_NAME; TRUNCATE TABLE $ACTIVE_LOG_TABLE;" \
-        || { log_error "Failed to truncate active_logs"; return 1; }
-    
-    log_success "Active logs truncated"
-}
-
-# ============ 6.4: Parallel Execution ============
-# Thực thi backup & truncate song song để tiết kiệm thời gian
-# Thay vì: Dump (10s) + Zip (5s) + Truncate (2s) = 17s
-# Giờ là: Max(Dump, Zip+Truncate) ≈ 10s
-handle_active_logs_parallel() {
-    log "=========================================="
-    log "Processing active_logs (parallel mode)"
-    log "=========================================="
-    
-    # Chạy backup background
-    backup_active_logs &
-    BACKUP_PID=$!
-    
-    # Chờ backup hoàn tất
-    wait $BACKUP_PID
-    
-    # Chạy compress và truncate song song
-    compress_active_logs &
-    COMPRESS_PID=$!
-    
-    truncate_active_logs &
-    TRUNCATE_PID=$!
-    
-    # Chờ cả hai hoàn tất
-    wait $COMPRESS_PID $TRUNCATE_PID
-    
-    log_success "Active logs processing completed"
-}
-
-################################################################################
-# SECTION 7: DATA MASKING
-################################################################################
-
-# ============ 7.1: Import Masked Data ============
-# Import dữ liệu mask (ẩn thông tin nhạy cảm)
-# Đây là bước quan trọng để bảo vệ dữ liệu thực trong môi trường dev
-import_masked_data() {
-    log "Importing masked/fake data for sensitive columns..."
-    
-    $MYSQL_LOGIN "$DATABASE_IMPORT_NAME" < "$SQL_MASK_FILE_PATH" \
-        || { log_error "Failed to import masked data"; return 1; }
-    
-    log_success "Masked data imported successfully"
-}
-
-################################################################################
-# SECTION 8: FINAL DATABASE EXPORT & COMPRESSION
-################################################################################
-
-# ============ 8.1: Export Database with Optimization ============
-# Dump toàn bộ database với các flag tối ưu cho file lớn
-export_database() {
-    log "Exporting database with optimizations..."
-    
-    # Giải thích các flag:
-    # --single-transaction: Snapshot consistency không lock table
-    # --quick: Dump từng row thay vì load hết vào memory
-    # --lock-tables=false: Không lock, giúp app vẫn hoạt động
-    # --max_allowed_packet: Handle large BLOB/TEXT data
-    $MYSQL_DUMP \
-        --single-transaction \
-        --quick \
-        --lock-tables=false \
-        --max_allowed_packet=256M \
-        "$DATABASE_IMPORT_NAME" > "${DATABASE_EXPORT_PATH}.sql" \
-        || { log_error "Failed to export database"; return 1; }
-    
-    local export_size=$(stat -f%z "${DATABASE_EXPORT_PATH}.sql" 2>/dev/null || echo 0)
-    log_success "Database exported: $(echo "scale=2; $export_size / 1024 / 1024" | bc) MB"
-}
-
-# ============ 8.2: Compress Database ============
-# Nén file SQL để giảm dung lượng 60-80% tùy dữ liệu
-compress_database() {
-    log "Compressing database export..."
-    
-    local original_size=$(stat -f%z "${DATABASE_EXPORT_PATH}.sql" 2>/dev/null || echo 0)
-    
-    zip -j -q "$FINAL_ZIP_PATH" "${DATABASE_EXPORT_PATH}.sql" \
-        || { log_error "Failed to compress database"; return 1; }
-    
-    local compressed_size=$(stat -f%z "$FINAL_ZIP_PATH" 2>/dev/null || echo 0)
-    local ratio=$(echo "scale=2; $original_size / $compressed_size" | bc)
-    
-    # Thêm vào temp files để cleanup
-    TEMP_FILES+=("${DATABASE_EXPORT_PATH}.sql")
-    
-    log_success "Database compressed: $(echo "scale=2; $compressed_size / 1024 / 1024" | bc) MB (${ratio}x compression)"
-}
-
-################################################################################
-# SECTION 9: ENVIRONMENT FILE UPDATE
+# SECTION 6: ENVIRONMENT FILE UPDATE
 ################################################################################
 
 # ============ 9.1: Update .env File ============
@@ -612,6 +486,31 @@ update_env_file() {
     log_success ".env file updated successfully"
 }
 
+# ============ Options ============
+KEEP_ORIGINAL=false
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --keep-original|-k)
+                KEEP_ORIGINAL=true
+                shift
+                ;;
+            --help|-h)
+                echo "Usage: $0 [options]"
+                echo "Options:"
+                echo "  -k, --keep-original    Do not delete original backup-daily-*.gz file(s)"
+                echo "  -h, --help             Show this help message"
+                exit 0
+                ;;
+            *)
+                log_error "Unknown option: $1"
+                exit 1
+                ;;
+        esac
+    done
+}
+
 remove_other_file() {
     # Xóa file .sql đã giải nén (chỉ xóa khi thành công, giữ lại khi lỗi để debug)
     if [ -f "$SQL_FILE_PATH" ]; then
@@ -619,29 +518,20 @@ remove_other_file() {
         log_success "Removed extracted SQL file: $(basename "$SQL_FILE_PATH")"
     fi
 
-    # Xóa tất cả file backup-daily-*.gz (kể cả file cũ các ngày trước)
-    local gz_count=0
-    for gz_file in "$DOWNLOADS_DIR"/backup-daily-*.gz; do
-        if [ -f "$gz_file" ]; then
-            rm -f "$gz_file"
-            log "Removed: $(basename "$gz_file")"
-            ((gz_count++))
-        fi
-    done
-    [ $gz_count -gt 0 ] && log_success "Removed $gz_count backup-daily-*.gz file(s)"
-
-    rm -f "$DOWNLOADS_DIR/$ACTIVE_LOG_NAME.zip"
-
-    # Xóa các file database zip cũ, chỉ giữ lại file vừa gen hôm nay
-    local zip_count=0
-    for zip_file in "$DOWNLOADS_DIR"/*_database.zip; do
-        if [ -f "$zip_file" ] && [ "$zip_file" != "$FINAL_ZIP_PATH" ]; then
-            rm -f "$zip_file"
-            log "Removed old database zip: $(basename "$zip_file")"
-            ((zip_count++))
-        fi
-    done
-    [ $zip_count -gt 0 ] && log_success "Removed $zip_count old database zip file(s)"
+    # Xóa tất cả file backup-daily-*.gz (nếu KHÔNG bật tùy chọn KEEP_ORIGINAL)
+    if [ "$KEEP_ORIGINAL" = true ]; then
+        log "Skipping deletion of original backup-daily-*.gz file(s) (--keep-original enabled)"
+    else
+        local gz_count=0
+        for gz_file in "$DOWNLOADS_DIR"/backup-daily-*.gz; do
+            if [ -f "$gz_file" ]; then
+                move_to_trash "$gz_file" || return 1
+                log "Moved to Trash: $(basename "$gz_file")"
+                ((gz_count++))
+            fi
+        done
+        [ $gz_count -gt 0 ] && log_success "Removed $gz_count backup-daily-*.gz file(s)"
+    fi
 
     # Chạy thành công -> xóa tất cả log (kể cả log của các lần chạy cũ)
     rm -f "$DOWNLOADS_DIR"/gen_db_*.log
@@ -687,7 +577,6 @@ optimize_laravel() {
 # ============ 11.1: Print Summary ============
 # Hiển thị kết quả cuối cùng với các thông tin quan trọng
 print_completion_summary() {
-    local final_db_size=$(stat -f%z "$FINAL_ZIP_PATH" 2>/dev/null || echo 0)
     local completion_time=$(date '+%Y-%m-%dT%H:%M:%S')
     
     log "=========================================="
@@ -696,15 +585,13 @@ print_completion_summary() {
     log ""
     log "📊 Final Summary:"
     log "   - Database name: $DATABASE_IMPORT_NAME"
-    log "   - Export file: $FINAL_ZIP_PATH"
-    log "   - Export size: $(echo "scale=2; $final_db_size / 1024 / 1024" | bc) MB"
+    log "   - Database generated and masked locally"
     log "   - Completion time: $completion_time"
     log "   - Log file: $LOG_FILE"
+    log "   - Keep Original File: $KEEP_ORIGINAL"
     log ""
     log "✅ Next Steps:"
-    log "   1. Verify $TIC_WEB_DIR/.env has correct DB_DATABASE"
-    log "   2. Run: php artisan migrate (if needed)"
-    log "   3. Run: php artisan seed (if needed)"
+    log "   1. Run ticDBExport separately when a staff export is needed"
     log ""
     log "=========================================="
 }
@@ -716,6 +603,8 @@ print_completion_summary() {
 # ============ 12.1: Main Function ============
 # Kết hợp tất cả các bước lại thành một quy trình hoàn chỉnh
 main() {
+    parse_args "$@"
+
     log "=========================================="
     log "Starting Database Generation Script"
     log "=========================================="
@@ -727,57 +616,42 @@ main() {
     # Step 2: Hiển thị overview
     print_overview
     
-    # Step 3: Import database gốc
+    # Step 3: Import database gốc và masking trong một lần
     log "=========================================="
-    log "PHASE 1: Database Import"
+    log "PHASE 1: Database Import & Masking"
     log "=========================================="
     measure_time "Drop & Create Database" "drop_and_create_database" || exit 1
-    measure_time "Import SQL Data" "import_sql_data" || exit 1
-    measure_time "Validate Import" "validate_import" || exit 1
+    measure_time "Import Database & Apply Mask" "import_sql_data" || exit 1
+    measure_time "Validate Import & Masking" "validate_import" || exit 1
     
-    # Step 4: Xử lý active logs
-    log "=========================================="
-    log "PHASE 2: Active Logs Processing"
-    log "=========================================="
-    measure_time "Handle Active Logs (Parallel)" "handle_active_logs_parallel" || exit 1
-    
-    # Step 5: Import dữ liệu mask
-    log "=========================================="
-    log "PHASE 3: Data Masking"
-    log "=========================================="
-    measure_time "Import Masked Data" "import_masked_data" || exit 1
-    
-    # Step 6: Export & compress
-    log "=========================================="
-    log "PHASE 4: Database Export & Compression"
-    log "=========================================="
-    measure_time "Export Database" "export_database" || exit 1
-    measure_time "Compress Database" "compress_database" || exit 1
-    
-    # # Step 7: Cập nhật environment
+    # # Step 5: Cập nhật environment
     # log "=========================================="
     # log "PHASE 5: Environment Configuration"
     # log "=========================================="
     # measure_time "Update .env File" "update_env_file" || exit 1
     
-    # # Step 8: Optimize Laravel
+    # # Step 6: Optimize Laravel
     # log "=========================================="
     # log "PHASE 6: Laravel Optimization"
     # log "=========================================="
     # measure_time "Optimize Laravel" "optimize_laravel" || exit 1
     
-    # Step 9: Cleanup các file không cần thiết
+    # Step 7: Cleanup các file không cần thiết
     log "=========================================="
     log "PHASE 5: Cleanup Temporary Files"
     log "=========================================="
     remove_other_file || log_warning "Cleanup encountered an issue"
 
-    bash ~/quandn/clean_download_folder.sh;
+    if [ "$KEEP_ORIGINAL" = false ]; then
+        bash ~/quandn/clean_download_folder.sh;
+    else
+        log "Skipping clean_download_folder.sh (--keep-original enabled)"
+    fi
 
-    # Step 10: Print summary
+    # Step 8: Print summary
     print_completion_summary
 
-    # Step 11: Gửi thông báo macOS
+    # Step 9: Gửi thông báo macOS
     alert_success
 }
 

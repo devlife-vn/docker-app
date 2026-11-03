@@ -8,6 +8,7 @@ where alerts.date_entered < DATE_ADD(CURDATE(), INTERVAL -15 DAY));
 delete
 from alerts
 where date_entered < DATE_ADD(CURDATE(), INTERVAL -15 DAY);
+
 delete
 from active_logs
 where call_time < DATE_ADD(CURDATE(), INTERVAL -15 DAY);

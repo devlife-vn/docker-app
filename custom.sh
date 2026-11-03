@@ -1,13 +1,53 @@
 #!/bin/zsh
 echo "Xin chào anh Quân"
 
+gemini() {
+  local prompt='Luôn đưa ra command nếu có thể để tôi sẽ chạy.'
+
+  if (( $# > 0 )); then
+    prompt+=" $*"
+  fi
+
+  agy -p --dangerously-skip-permissions "$prompt"
+}
+
+import_vscode_extensions() {
+	sh /Users/quandn/quandn/import_compat.sh
+}
+
+# Hàm helper dùng chung: tạo tên nhánh (theo timestamp nếu không truyền)
+_nb_gen_branch_name() {
+  local branch_name="$1"
+  if [ -z "$branch_name" ]; then
+    local timestamp=$(date +"%y%m%d%H%M")
+    branch_name="quandn/$timestamp"
+  fi
+  echo "$branch_name"
+}
+
+# nb: chỉ in ra lệnh tạo nhánh, không tự thực thi
 nb() {
-  # Tạo tên nhánh theo thời gian: năm tháng ngày giờ phút
-  local timestamp=$(date +"%y%m%d%H%M")
-  local branch_name="quandn/$timestamp"
-  git fetch --all --prune
+  local branch_name=$(_nb_gen_branch_name "$1")
+
+  fetch
+
   printf '%s\n' "git checkout -b $branch_name origin/master"
   printf '%s\n' "git push --set-upstream origin $branch_name"
+}
+
+# nbs: tạo nhánh và switch luôn sang nhánh đó (thực thi thật)
+nbs() {
+  local branch_name=$(_nb_gen_branch_name "$1")
+
+  fetch
+
+  git checkout -b "$branch_name" origin/master
+  git push --set-upstream origin "$branch_name"
+  printf '%s\n' "git push --set-upstream origin $branch_name"
+}
+
+fetch() {
+  git fetch --all
 }
 
 codetic() {
@@ -35,13 +75,9 @@ ticimportdb() {
     importdb --db=db_tic --file="$1"
 }
 
-roleimportdb() {
-    importdb --db=db_role --file="$1"
-}
-
 retailimportdb() {
     importdb --db=db_retail --file="$1"
-    time importsql --db=db_retail --file="/Users/quandn/quandn/mask-update-retail.sql"
+    importsql --db=db_retail --file="/Users/quandn/quandn/mask-update-retail.sql"
 }
 
 ticimportsql() {
@@ -143,21 +179,13 @@ roleExport() {
 }
 
 stashnow() {
-  git stash push -um "Auto stash at $(date +"%Y-%m-%d %H:%M:%S")"
-  echo "✅ Đã stash tất cả thay đổi với message: Auto stash at $(date +"%Y-%m-%d %H:%M:%S")"
-}
-
-code1() {
-  export ANTHROPIC_BASE_URL="https://integrate.api.nvidia.com/v1"
-  export ANTHROPIC_AUTH_TOKEN="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"
-  export ANTHROPIC_MODEL="z-ai/glm-5.2"
-  export CLAUDE_CODE_AUTO_COMPACT_WINDOW="160000"
-  export API_TIMEOUT_MS="3600000"
-  export CLAUDE_CODE_MAX_OUTPUT_TOKENS="8192"
-  export CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING="1"
-  export ENABLE_TOOL_SEARCH="true"
-  echo "Đang khởi động Claude..."
-  claude "$@"
+  local message="$1"
+  if [ -z "$message" ]; then
+    local timestamp=$(date +"%y%m%d%H%M")
+    message="Auto stash at $(date +"%Y-%m-%d %H:%M:%S")"
+  fi
+  git stash push -um "$message"
+  echo "✅ Đã stash tất cả thay đổi với message: $message"
 }
 
 getlog() {
@@ -228,4 +256,88 @@ runcode() {
 
 formatsh() {
   shfmt -w -i 2 -ci -bn "$@"
+}
+
+retailDBExport() {
+  local timestamp=$(date +%Y%m%d_%H%M%S)
+  local sql_filename="db_retail_${timestamp}.sql"
+  local zip_filename="db_retail_${timestamp}.zip"
+  local sql_path="/tmp/${sql_filename}"
+  local zip_path=~/Downloads/"${zip_filename}"
+
+  echo "📦 Đang export database db_retail..."
+  mysqldump -u root -proot db_retail > "$sql_path" 2>/dev/null
+
+  if [ $? -ne 0 ]; then
+    echo "❌ Export database thất bại!"
+    rm -f "$sql_path"
+    return 1
+  fi
+
+  echo "🗜️ Đang nén file zip..."
+  zip -j "$zip_path" "$sql_path" > /dev/null
+
+  if [ $? -eq 0 ]; then
+    echo "✅ Export & nén thành công: $zip_path"
+    rm -f "$sql_path"
+    open ~/Downloads/
+  else
+    echo "❌ Nén zip thất bại!"
+    rm -f "$sql_path"
+    return 1
+  fi
+}
+
+ticDBExport() {
+  local timestamp=$(date +%Y%m%d_%H%M%S)
+  local sql_filename="db_tic_${timestamp}.sql"
+  local zip_filename="db_tic_${timestamp}.zip"
+  local sql_path="/tmp/${sql_filename}"
+  local zip_path=~/Downloads/"${zip_filename}"
+
+  echo "📦 Đang export database db_tic (bỏ qua active_logs)..."
+  MYSQL_PWD=root mysqldump -u root \
+    --single-transaction \
+    --set-gtid-purged=OFF \
+    --routines \
+    --triggers \
+    --events \
+    --ignore-table=db_tic.active_logs \
+    db_tic > "$sql_path"
+
+  if [ $? -ne 0 ]; then
+    echo "❌ Export database thất bại. Kiểm tra quyền truy cập MySQL và database db_tic."
+    rm -f "$sql_path"
+    return 1
+  fi
+
+  echo "🗜️ Đang nén file zip..."
+  if zip -j "$zip_path" "$sql_path" > /dev/null; then
+    echo "✅ Export & nén thành công: $zip_path"
+    rm -f "$sql_path"
+    open ~/Downloads/
+  else
+    echo "❌ Nén zip thất bại!"
+    rm -f "$sql_path"
+    return 1
+  fi
+}
+
+ssh_tic() {
+  ssh quandn@27.71.27.163 -p 22 -i ~/.ssh/id_ed25519_ticvietnam
+}
+
+ssh_retail() {
+  ssh sgtretail@27.71.27.197 -p 22
+}
+
+ssh_api_retail() {
+  ssh sgtapi@27.71.27.197 -p 22
+}
+
+create_pr() {
+  local branch_name=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  local full_link="https://github.com/truongtc/tic/pull/new/$branch_name";
+  echo $full_link;
+  open $full_link;
 }

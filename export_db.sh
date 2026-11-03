@@ -13,7 +13,7 @@ CURRENT_DATE=$(date +%d_%m_%Y)
 # ================/CHỈ CẦN SỬA 2 THÔNG TIN NÀY/====================
 DATABASE_EXPORT_NAME="${CURRENT_DATE}_database"
 MYSQL_LOGIN="mysql -u root -psecret"
-MYSQL_DUMP="mysqldump -u root -psecret"
+MYSQL_DUMP="mysqldump -u root -psecret --ignore-table=${DATABASE_IMPORT_NAME}.active_logs"
 DATABASE_EXPORT_PATH_NAME=/Users/quandn/Downloads/${DATABASE_EXPORT_NAME}
 
 echo "Dumping database..."
